@@ -5,7 +5,8 @@ from keras.preprocessing import image as image_processing
 
 class ImageInfo:
     @staticmethod
-    def loadImageInfosFromDirectory(imagesDirectoryPath : str, target_size : [], fileExtension : str):
+    def loadImageInfosFromDirectory(imagesDirectoryPath : str, target_size : []):
+        fileExtension = "jpg"
         imagesLocator = os.path.join(imagesDirectoryPath, "*/", "*." + fileExtension)
         imagePaths = glob.glob(imagesLocator, recursive=True)
         imageInfos = []
