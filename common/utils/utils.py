@@ -45,8 +45,8 @@ from keras.layers.convolutional import *
 from keras.preprocessing import image, sequence
 from keras.preprocessing.text import Tokenizer
 
-from vgg16 import *
-from vgg16bn import *
+from common.model.deeplearning.pretrained.vgg16 import *
+from common.model.deeplearning.pretrained.vgg16bn import *
 np.set_printoptions(precision=4, linewidth=100)
 
 
@@ -256,4 +256,3 @@ class MixIterator(object):
             n0 = np.concatenate([n[0] for n in nexts])
             n1 = np.concatenate([n[1] for n in nexts])
             return (n0, n1)
-

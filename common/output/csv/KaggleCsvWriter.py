@@ -1,5 +1,3 @@
-import PredictionInfo
-import PredictionsSummary
 import pandas as pd
 
 class KaggleCsvWriter:

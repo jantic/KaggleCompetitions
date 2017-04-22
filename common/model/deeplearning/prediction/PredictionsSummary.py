@@ -1,5 +1,4 @@
-import ImageInfo
-import PredictionInfo
+from common.model.deeplearning.prediction import PredictionInfo
 
 
 class PredictionsSummary:

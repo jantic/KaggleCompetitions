@@ -1,5 +1,6 @@
-import os
 import glob
+import os
+
 from keras.preprocessing import image as image_processing
 
 
