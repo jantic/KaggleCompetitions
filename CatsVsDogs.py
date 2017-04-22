@@ -27,15 +27,9 @@ def getAllPredictions(imageInfos, vgg):
     predictionSummaries = []
 
     for imageInfo in imageInfos:
-        images = [imageInfo.getImageArray()]
-        probs, classIds, classNames = vgg.predict(images)
-        classId = classIds[0]
-        className = classNames[0]
-        confidence = probs[0]
+        image = imageInfo.getImageArray()
+        predictionInfos = vgg.predict(image)
         testId = imageInfo.getImageNumber()
-        topPredictionInfo = PredictionInfo(confidence, classId, className)
-        secondPredictionInfo = generateSecondPredictionInfo(topPredictionInfo, vgg)
-        predictionInfos = [topPredictionInfo, secondPredictionInfo]
         predictionSummary = PredictionsSummary(testId, predictionInfos)
         predictionSummaries.append(predictionSummary)
 
@@ -52,7 +46,7 @@ dataPath = "data/"
 trainingSetPath = dataPath + "train"
 validationSetPath = dataPath + "valid"
 testSetPath = dataPath + "test1"
-nb_epoch = 2
+nb_epoch = 5
 training_batch_size = 64
 validation_batch_size = 80
 #TODO Toggle size?

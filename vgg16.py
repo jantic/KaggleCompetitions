@@ -3,6 +3,7 @@ from __future__ import division, print_function
 import os, json
 from glob import glob
 import numpy as np
+import operator
 from scipy import misc, ndimage
 from scipy.ndimage.interpolation import zoom
 
@@ -15,7 +16,7 @@ from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2
 from keras.layers.pooling import GlobalAveragePooling2D
 from keras.optimizers import SGD, RMSprop, Adam
 from keras.preprocessing import image
-
+from PredictionInfo import PredictionInfo
 
 vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
 def vgg_preprocess(x):
@@ -40,12 +41,15 @@ class Vgg16():
             class_dict = json.load(f)
         self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
 
-    def predict(self, imgs, details=False):
-        all_preds = self.model.predict(imgs)
-        idxs = np.argmax(all_preds, axis=1)
-        preds = [all_preds[i, idxs[i]] for i in range(len(idxs))]
-        classes = [self.classes[idx] for idx in idxs]
-        return np.array(preds), idxs, classes
+
+    def predict(self, image, details=False):
+        verbose = 1 if details else 0
+        confidences = self.model.predict([image], verbose=verbose)[0]
+        classIds = range(len(confidences))
+        classNames = [self.classes[classId] for classId in classIds]
+        predictionInfos = PredictionInfo.generatePredictionInfos(confidences, classIds, classNames)
+        predictionInfos.sort(reverse=True)
+        return predictionInfos
 
 
     def ConvBlock(self, layers, filters):

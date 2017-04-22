@@ -25,3 +25,6 @@ class PredictionInfo:
 
     def getClassName(self) -> str:
         return self.__className
+
+    def __lt__(self, other):
+        return self.getConfidence() < other.getConfidence()
