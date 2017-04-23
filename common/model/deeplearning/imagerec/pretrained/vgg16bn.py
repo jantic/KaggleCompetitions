@@ -24,6 +24,7 @@ class Vgg16BN():
     def __init__(self, size=(224,224), include_top=True):
         self.FILE_PATH = 'http://www.platform.ai/models/'
         self.create(size, include_top)
+        self.__size = size
         self.get_classes()
 
 
@@ -56,9 +57,20 @@ class Vgg16BN():
         model.add(BatchNormalization())
         model.add(Dropout(0.5))
 
+    def getWidth(self):
+        return self.__size[0]
+
+    def getHeight(self):
+        return self.__size[1]
+
+    def getDefaultWidth(self):
+        return 224
+
+    def getDefaultHeight(self):
+        return 224
 
     def create(self, size, include_top):
-        if size != (224,224):
+        if (size) != (self.getDefaultWidth(),self.getDefaultHeight()):
             include_top=False
 
         model = self.model = Sequential()
@@ -85,7 +97,7 @@ class Vgg16BN():
 
 
     def getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
-        return gen.flow_from_directory(path, target_size=(224,224),
+        return gen.flow_from_directory(path, target_size=(self.getWidth(),self.getHeight()),
                 class_mode=class_mode, shuffle=shuffle, batch_size=batch_size)
 
 

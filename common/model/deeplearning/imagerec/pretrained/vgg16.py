@@ -9,6 +9,7 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.preprocessing import image
 from keras.utils.data_utils import get_file
+import keras
 
 from common.model.deeplearning.imagerec.IDeepLearningModel import IDeepLearningModel
 from common.model.deeplearning.prediction.PredictionInfo import PredictionInfo
@@ -123,11 +124,12 @@ class Vgg16(IDeepLearningModel):
 
 
     def fit(self, batches, val_batches, nb_epoch=1):
+        earlyStopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=2, verbose=1, mode='auto')
         self.model.fit_generator(batches, samples_per_epoch=batches.nb_sample, nb_epoch=nb_epoch,
-                validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
+                callbacks = [earlyStopping], validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
 
 
     def test(self, path, batch_size=8):
-        test_batches = self.get_batches(path, shuffle=False, batch_size=batch_size, class_mode=None)
+        test_batches = self.getBatches(path, shuffle=False, batch_size=batch_size, class_mode=None)
         return test_batches, self.model.predict_generator(test_batches, test_batches.nb_sample)
 
