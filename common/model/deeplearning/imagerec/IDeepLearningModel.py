@@ -6,7 +6,11 @@ class IDeepLearningModel:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def get_batches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'): raise NotImplementedError
+    def getImageWidth(self): raise NotImplementedError
+    @abstractmethod
+    def getImageHeight(self): raise NotImplementedError
+    @abstractmethod
+    def getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'): raise NotImplementedError
     @abstractmethod
     def predict(self, image, details=False): raise NotImplementedError
     @abstractmethod

@@ -1,10 +1,11 @@
 
 class PredictionInfo:
     @staticmethod
-    def generatePredictionInfos(confidences : [float], classIds : [int], classNames : [str]):
+    def generatePredictionInfos(confidences : [float], classIds : [int], classNames : [str], minConfidence: float, maxConfidence : float):
         predictionInfos = []
         for i in range(len(confidences)):
-            confidence = confidences[i]
+            rawConfidence = confidences[i]
+            confidence = PredictionInfo.__getClippedConfidence(rawConfidence, minConfidence, maxConfidence)
             classId = classIds[i]
             className = classNames[i]
             predictionInfo = PredictionInfo(confidence, classId, className)
@@ -25,6 +26,16 @@ class PredictionInfo:
 
     def getClassName(self) -> str:
         return self.__className
+
+    @staticmethod
+    def __getClippedConfidence(rawConfidence : float, minConfidence : float, maxConfidence : float):
+        if (rawConfidence < minConfidence):
+            return minConfidence
+
+        if(rawConfidence > maxConfidence):
+            return maxConfidence
+
+        return rawConfidence
 
     def __lt__(self, other):
         return self.getConfidence() < other.getConfidence()

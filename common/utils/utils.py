@@ -1,52 +1,17 @@
-from __future__ import division,print_function
-import math, sys, re
-import cloudpickle as pickle
-import os, json
-from glob import glob
-import numpy as np
-from matplotlib import pyplot as plt
-from operator import itemgetter, attrgetter, methodcaller
-from collections import OrderedDict
+from __future__ import division, print_function
+
 import itertools
-from itertools import chain
+import math
 
-import pandas as pd
-import PIL
-from PIL import Image
-from numpy.random import random, permutation, randn, normal, uniform, choice
-from numpy import newaxis
-import scipy
-from scipy import misc, ndimage
-from scipy.ndimage.interpolation import zoom
-from scipy.ndimage import imread
-from sklearn.metrics import confusion_matrix
 import bcolz
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.manifold import TSNE
-
-from IPython.lib.display import FileLink
-import tensorflow
-
-import keras
-from keras import backend as K
-from keras.utils.data_utils import get_file
-from keras.utils import np_utils
-from keras.utils.np_utils import to_categorical
-from keras.models import Sequential, Model
-from keras.layers import Input, Embedding, Reshape, merge, LSTM, Bidirectional
-from keras.layers import TimeDistributed, Activation, SimpleRNN, GRU
-from keras.layers.core import Flatten, Dense, Dropout, Lambda
-from keras.regularizers import l2, activity_l2, l1, activity_l1
-from keras.layers.normalization import BatchNormalization
-from keras.optimizers import SGD, RMSprop, Adam
-from keras.utils.layer_utils import layer_from_config
-from keras.metrics import categorical_crossentropy, categorical_accuracy
+from common.model.deeplearning.imagerec.pretrained.vgg16bn import *
 from keras.layers.convolutional import *
-from keras.preprocessing import image, sequence
-from keras.preprocessing.text import Tokenizer
+from keras.utils.layer_utils import layer_from_config
+from keras.utils.np_utils import to_categorical
+from matplotlib import pyplot as plt
 
-from common.model.deeplearning.pretrained.vgg16 import *
-from common.model.deeplearning.pretrained.vgg16bn import *
+from common.model.deeplearning.imagerec.pretrained.vgg16 import *
+
 np.set_printoptions(precision=4, linewidth=100)
 
 
