@@ -1,8 +1,10 @@
 import glob
 import os
+import random
 
 from keras.preprocessing import image as image_processing
-
+import PIL.Image
+from PIL.Image import Image
 
 class ImageInfo:
     @staticmethod
@@ -20,32 +22,32 @@ class ImageInfo:
 
     @staticmethod
     def getInstanceForImagePath(width : int, height : int, imagePath : str):
-        imageArray = ImageInfo.__generateImageArrayFromPath(imagePath, width, height)
+        pilImage = ImageInfo.__loadPILImageFromPath(imagePath)
         imageNumber = ImageInfo.__determineImageNumber(imagePath)
-        return ImageInfo.getInstance(width, height, imageNumber, imageArray)
+        return ImageInfo.getInstance(width, height, imageNumber, pilImage)
 
     @staticmethod
     def getResizedImageInfoInstance(width : int, height : int, imageInfo):
-        imageArray = imageInfo.getImageArray()
+        pilImage = imageInfo.getPilImage()
         imageNumber = imageInfo.getImageNumber()
-        return ImageInfo.getInstance(width, height, imageNumber, imageArray)
+        return ImageInfo.getInstance(width, height, imageNumber, pilImage)
 
     @staticmethod
-    def getInstance(width : int, height : int, imageNumber : int, imageArray : [int]):
-        resizedImageArray = ImageInfo.__generateResizedImageArray(imageArray, width, height)
-        return ImageInfo(width, height, imageNumber, resizedImageArray)
+    def getInstance(width : int, height : int, imageNumber : int, pilImage : Image):
+        resizedPilImage = ImageInfo.__generateResizedPilImage(pilImage, width, height)
+        return ImageInfo(width, height, imageNumber, resizedPilImage)
 
-    def __init__(self, width : int, height : int, imageNumber : int, imageArray : [int]):
+    def __init__(self, width : int, height : int, imageNumber : int, pilImage : Image):
         self.__width = width
         self.__height = height
         self.__imageNumber = imageNumber
-        self.__imageArray =  imageArray
+        self.__pilImage =  pilImage
 
     def getImageNumber(self) -> int:
         return self.__imageNumber
 
-    def getImageArray(self) -> []:
-        return self.__imageArray
+    def getPilImage(self) -> []:
+        return self.__pilImage
 
     def getTargetSize(self) -> []:
         return self.__target_size
@@ -53,20 +55,30 @@ class ImageInfo:
     def getImagePath(self) -> str:
         return self.__imagePath
 
+    def getWidth(self)-> int:
+        return self.__width
+
+    def getHeight(self)-> int:
+        return self.__height
+
     @staticmethod
     def __determineImageNumber(imagePath) -> int:
         return os.path.split(imagePath)[-1][0:-4]
 
     @staticmethod
-    def __generateImageArrayFromPath(imagePath : str, width : int, height : int):
-        rawImage = image_processing.load_img(imagePath, target_size=[width, height])
-        return ImageInfo.__generateImageArrayFromImage(rawImage, width, height)
+    def __loadPILImageFromPath(imagePath : str) -> Image:
+        return image_processing.load_img(imagePath)
 
     @staticmethod
-    def __generateImageArrayFromImage(rawImage : [int], width : int, height : int):
-        imageArray= image_processing.img_to_array(rawImage)
-        return ImageInfo.__generateResizedImageArray(imageArray, width, height)
-
-    @staticmethod
-    def __generateResizedImageArray(rawImageArray : [int], width : int, height : int) -> [int]:
-        return rawImageArray.reshape(1, 3, width, height)
+    def __generateResizedPilImage(pilImage : Image, width : int, height : int) -> Image:
+        #crop to maintain aspect ratio, then resize
+        aspectRatio = width/height
+        croppedWidth = min(int(aspectRatio * pilImage.height), pilImage.width)
+        croppedHeight = min(int(pilImage.width/aspectRatio), pilImage.height)
+        x0 = int((pilImage.width - croppedWidth)/2)
+        y0 = int((pilImage.height - croppedHeight)/2)
+        x1 = pilImage.width - int((pilImage.width - croppedWidth)/2)
+        y1 = pilImage.height - int((pilImage.height - croppedHeight)/2)
+        croppedImage = pilImage.crop((x0, y0, x1, y1))
+        resizedImage = croppedImage.resize((width, height), PIL.Image.ANTIALIAS)
+        return resizedImage

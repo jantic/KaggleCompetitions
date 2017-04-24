@@ -20,3 +20,6 @@ class PredictionsSummary:
 
     def getTestId(self) -> int:
         return self.__testId
+
+    def __lt__(self, other):
+        return self.getTopPrediction().getConfidence() < other.getTopPrediction().getConfidence()
