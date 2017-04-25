@@ -49,10 +49,10 @@ class Vgg16(IDeepLearningModel):
         return 224
 
     def getMinConfidence(self):
-        return 0.02
+        return 0.03
 
     def getMaxConfidence(self):
-        return 0.98
+        return 0.97
 
     #Assumes same image split into multiple parts
     def predict(self, pilImages : [Image], id : int, details=False) -> [PredictionsSummary]:
@@ -66,7 +66,6 @@ class Vgg16(IDeepLearningModel):
             classNames = [self.classes[classId] for classId in classIds]
             predictionInfos = PredictionInfo.generatePredictionInfos(
                 confidences, classIds, classNames,self.getMinConfidence(), self.getMaxConfidence())
-            predictionInfos.sort(reverse=True)
             predictionSummary = PredictionsSummary(id, predictionInfos)
             predictionSummaries.append(predictionSummary)
 

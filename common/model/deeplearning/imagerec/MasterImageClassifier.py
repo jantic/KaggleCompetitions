@@ -40,8 +40,7 @@ class MasterImageClassifier:
         testId = sourceImageInfo.getImageNumber()
         pilImages = self.__getAllPilImages(imageInfos)
         predictionSummaries = self.__model.predict(pilImages, testId)
-        predictionSummaries.sort(reverse=True)
-        return predictionSummaries[0]
+        return self.__generateFinalPredictionSummary(predictionSummaries[0], predictionSummaries)
 
     def __getAllPilImages(self, imageInfos : [ImageInfo]) -> [Image]:
         pilImages = []
@@ -50,4 +49,22 @@ class MasterImageClassifier:
             pilImages.append(imageInfo.getPilImage())
 
         return pilImages
+
+    #Generates "tie-breaker" out of subimage predictions if there isn't sufficient confidence on the top prediction
+    #for the full image.
+    #TODO: How exactly should that threshold be determined...?  For now, using one that works for two classes.  Definitely revisit
+    def __generateFinalPredictionSummary(self, fullImagePredictionSummary : PredictionsSummary, predictionSummaries : [PredictionsSummary]) -> PredictionsSummary:
+        if(self.__meetsMinConfidenceThreshold(fullImagePredictionSummary)):
+            return fullImagePredictionSummary
+
+        predictionSummaries.sort(reverse=True)
+        return predictionSummaries[0]
+
+    def __meetsMinConfidenceThreshold(self, predictionSummary : PredictionsSummary):
+        topPredictionConfidence = predictionSummary.getTopPrediction().getConfidence()
+        predictions = predictionSummary.getAllPredictions()
+        predictions.sort(reverse=True)
+        nextPredictionConfidence = predictions[1].getConfidence()
+        confidenceThreshold = 4.0 #arbitrary, magic, I know
+        return topPredictionConfidence/nextPredictionConfidence > confidenceThreshold
 

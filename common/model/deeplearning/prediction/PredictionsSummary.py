@@ -4,6 +4,7 @@ from common.model.deeplearning.prediction import PredictionInfo
 class PredictionsSummary:
     def __init__(self, testId : int, predictions : []):
         self.__testId = testId
+        predictions.sort(reverse=True)
         self.__predictions = predictions
         self.__classIdToConfidence = dict()
         for prediction in predictions:
