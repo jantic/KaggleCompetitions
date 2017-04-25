@@ -1,4 +1,5 @@
 from __future__ import division, print_function
+from __future__ import absolute_import
 
 import json
 
@@ -12,7 +13,11 @@ from keras.utils.data_utils import get_file
 import keras
 
 from common.model.deeplearning.imagerec.IDeepLearningModel import IDeepLearningModel
+from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 from common.model.deeplearning.prediction.PredictionInfo import PredictionInfo
+
+from PIL.Image import Image
+from common.image.ModelImagelConverter import ModelImageConverter
 
 vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
 def vgg_preprocess(x):
@@ -49,16 +54,23 @@ class Vgg16(IDeepLearningModel):
     def getMaxConfidence(self):
         return 0.98
 
-    def predict(self, image, details=False):
+    #Assumes same image split into multiple parts
+    def predict(self, pilImages : [Image], id : int, details=False) -> [PredictionsSummary]:
         verbose = 1 if details else 0
-        confidences = self.model.predict([image], verbose=verbose)[0]
-        classIds = range(len(confidences))
-        classNames = [self.classes[classId] for classId in classIds]
-        predictionInfos = PredictionInfo.generatePredictionInfos(
-            confidences, classIds, classNames,self.getMinConfidence(), self.getMaxConfidence())
-        predictionInfos.sort(reverse=True)
-        return predictionInfos
+        imageArray = ModelImageConverter.generateImageArrayForPrediction(pilImages, self.getImageWidth(), self.getImageHeight())
+        confidenceBatches = self.model.predict(imageArray, verbose=verbose)
+        predictionSummaries = []
 
+        for confidences in confidenceBatches:
+            classIds = range(len(confidences))
+            classNames = [self.classes[classId] for classId in classIds]
+            predictionInfos = PredictionInfo.generatePredictionInfos(
+                confidences, classIds, classNames,self.getMinConfidence(), self.getMaxConfidence())
+            predictionInfos.sort(reverse=True)
+            predictionSummary = PredictionsSummary(id, predictionInfos)
+            predictionSummaries.append(predictionSummary)
+
+        return predictionSummaries
 
     def ConvBlock(self, layers, filters):
         model = self.model

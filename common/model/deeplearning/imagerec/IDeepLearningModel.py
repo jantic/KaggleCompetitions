@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from keras.preprocessing import image
+from PIL.Image import Image
 
 #Interface
 class IDeepLearningModel:
@@ -12,7 +13,7 @@ class IDeepLearningModel:
     @abstractmethod
     def getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'): raise NotImplementedError
     @abstractmethod
-    def predict(self, image, details=False): raise NotImplementedError
+    def predict(self, pilImages : [Image], id : int, details=False): raise NotImplementedError
     @abstractmethod
     def finetune(self, batches): raise NotImplementedError
     @abstractmethod

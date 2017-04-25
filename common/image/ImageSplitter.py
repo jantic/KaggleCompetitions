@@ -29,7 +29,7 @@ class ImageSplitter:
         return newImageInfos
 
     @staticmethod
-    def getImageDividedIntoQuadrants(sourceImageInfo : ImageInfo) -> [ImageInfo] :
+    def getImageDividedIntoSquareQuadrants(sourceImageInfo : ImageInfo) -> [ImageInfo] :
         newImageInfos = []
         halfHeight = ImageSplitter.getHalfHeight(sourceImageInfo)
         halfWidth = ImageSplitter.getHalfWidth(sourceImageInfo)
@@ -45,13 +45,43 @@ class ImageSplitter:
         return newImageInfos
 
     @staticmethod
+    def getImageHalfCenter(sourceImageInfo : ImageInfo) -> [ImageInfo] :
+        newImageInfos = []
+        halfHeight = ImageSplitter.getHalfHeight(sourceImageInfo)
+        halfWidth = ImageSplitter.getHalfWidth(sourceImageInfo)
+        quarterHeight = int(halfHeight / 2)
+        quarterWidth = int(halfWidth/2)
+
+        #Top Center
+        newImageInfos.append(ImageSplitter.getImagePortion(sourceImageInfo, quarterWidth, quarterHeight, halfWidth, halfHeight))
+        return newImageInfos
+
+    @staticmethod
+    def getImageDividedIntoCrossQuadrants(sourceImageInfo : ImageInfo) -> [ImageInfo] :
+        newImageInfos = []
+        halfHeight = ImageSplitter.getHalfHeight(sourceImageInfo)
+        halfWidth = ImageSplitter.getHalfWidth(sourceImageInfo)
+        quarterHeight = int(halfHeight / 2)
+        quarterWidth = int(halfWidth/2)
+
+        #Top Center
+        newImageInfos.append(ImageSplitter.getImagePortion(sourceImageInfo, quarterWidth, 0, halfWidth, halfHeight))
+        #Bottom Center
+        newImageInfos.append(ImageSplitter.getImagePortion(sourceImageInfo, quarterWidth, halfHeight+1, halfWidth, halfHeight))
+        #Left Center
+        newImageInfos.append(ImageSplitter.getImagePortion(sourceImageInfo, 0, quarterHeight, halfWidth, halfHeight))
+        #Right Center
+        newImageInfos.append(ImageSplitter.getImagePortion(sourceImageInfo, halfWidth+1, quarterHeight, halfWidth, halfHeight))
+        return newImageInfos
+
+    @staticmethod
     def getImagePortion(sourceImageInfo : ImageInfo, beginX : int, beginY : int, width : int, height : int) -> ImageInfo :
         sourcePilImage= sourceImageInfo.getPilImage()
         endX = beginX + width
         endY = beginY + height
         newPilImage = sourcePilImage.crop((beginX, beginY, endX, endY))
         imageNumber = sourceImageInfo.getImageNumber()
-        return ImageInfo.getInstance(width, height, imageNumber, newPilImage)
+        return ImageInfo.getInstance(imageNumber, newPilImage)
 
     @staticmethod
     def getHalfWidth(sourceImageInfo : ImageInfo) -> int:

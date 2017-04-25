@@ -8,38 +8,29 @@ from PIL.Image import Image
 
 class ImageInfo:
     @staticmethod
-    def loadImageInfosFromDirectory(imagesDirectoryPath : str, width : int, height : int):
+    def loadImageInfosFromDirectory(imagesDirectoryPath : str):
         fileExtension = "jpg"
         imagesLocator = os.path.join(imagesDirectoryPath, "*/", "*." + fileExtension)
         imagePaths = glob.glob(imagesLocator, recursive=True)
         imageInfos = []
 
         for imagePath in imagePaths:
-            imageInfo = ImageInfo.getInstanceForImagePath(width, height, imagePath)
+            imageInfo = ImageInfo.getInstanceForImagePath(imagePath)
             imageInfos.append(imageInfo)
 
         return imageInfos
 
     @staticmethod
-    def getInstanceForImagePath(width : int, height : int, imagePath : str):
+    def getInstanceForImagePath(imagePath : str):
         pilImage = ImageInfo.__loadPILImageFromPath(imagePath)
         imageNumber = ImageInfo.__determineImageNumber(imagePath)
-        return ImageInfo.getInstance(width, height, imageNumber, pilImage)
+        return ImageInfo.getInstance(imageNumber, pilImage)
 
     @staticmethod
-    def getResizedImageInfoInstance(width : int, height : int, imageInfo):
-        pilImage = imageInfo.getPilImage()
-        imageNumber = imageInfo.getImageNumber()
-        return ImageInfo.getInstance(width, height, imageNumber, pilImage)
+    def getInstance(imageNumber : int, pilImage : Image):
+        return ImageInfo(imageNumber, pilImage)
 
-    @staticmethod
-    def getInstance(width : int, height : int, imageNumber : int, pilImage : Image):
-        resizedPilImage = ImageInfo.__generateResizedPilImage(pilImage, width, height)
-        return ImageInfo(width, height, imageNumber, resizedPilImage)
-
-    def __init__(self, width : int, height : int, imageNumber : int, pilImage : Image):
-        self.__width = width
-        self.__height = height
+    def __init__(self, imageNumber : int, pilImage : Image):
         self.__imageNumber = imageNumber
         self.__pilImage =  pilImage
 
@@ -49,17 +40,14 @@ class ImageInfo:
     def getPilImage(self) -> []:
         return self.__pilImage
 
-    def getTargetSize(self) -> []:
-        return self.__target_size
-
     def getImagePath(self) -> str:
         return self.__imagePath
 
     def getWidth(self)-> int:
-        return self.__width
+        return self.__pilImage.width
 
     def getHeight(self)-> int:
-        return self.__height
+        return self.__pilImage.height
 
     @staticmethod
     def __determineImageNumber(imagePath) -> int:

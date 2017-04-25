@@ -4,7 +4,7 @@ from common.model.deeplearning.imagerec.IDeepLearningModel import IDeepLearningM
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 from common.model.deeplearning.prediction.PredictionInfo import PredictionInfo
 
-from keras.preprocessing import image as image_processing
+
 from PIL.Image import Image
 
 class MasterImageClassifier:
@@ -18,9 +18,7 @@ class MasterImageClassifier:
         self.__model.fit(trainingBatches, validationBatches, nb_epoch=numEpochs)
 
     def getAllPredictions(self, testImagesPath : str) -> [PredictionsSummary]:
-        width = self.__model.getImageWidth()
-        height = self.__model.getImageHeight()
-        imageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath, width, height)
+        imageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
         predictionSummaries = []
 
         for imageInfo in imageInfos:
@@ -34,36 +32,22 @@ class MasterImageClassifier:
     def getPredictionsForImage(self, sourceImageInfo : ImageInfo) -> PredictionsSummary:
         imageInfos = []
         imageInfos.append(sourceImageInfo)
-        imageInfos.extend(ImageSplitter.getImageDividedIntoQuadrants(sourceImageInfo))
+        imageInfos.extend(ImageSplitter.getImageDividedIntoSquareQuadrants(sourceImageInfo))
+        imageInfos.extend(ImageSplitter.getImageDividedIntoCrossQuadrants(sourceImageInfo))
         imageInfos.extend(ImageSplitter.getImageDividedIntoHorizontalHalves(sourceImageInfo))
         imageInfos.extend(ImageSplitter.getImageDividedIntoVerticalHalves(sourceImageInfo))
-        predictionSummaries = []
-
-        for imageInfo in imageInfos:
-            width = self.__model.getImageWidth()
-            height = self.__model.getImageHeight()
-            resizedImageInfo = ImageInfo.getResizedImageInfoInstance(width, height, imageInfo)
-            predictionInfos = self.__getPredictionsForProperlySizedImage(resizedImageInfo)
-            testId = imageInfo.getImageNumber()
-            predictionSummary = PredictionsSummary(testId, predictionInfos)
-            predictionSummaries.append(predictionSummary)
-
+        imageInfos.extend(ImageSplitter.getImageHalfCenter(sourceImageInfo))
+        testId = sourceImageInfo.getImageNumber()
+        pilImages = self.__getAllPilImages(imageInfos)
+        predictionSummaries = self.__model.predict(pilImages, testId)
         predictionSummaries.sort(reverse=True)
         return predictionSummaries[0]
 
+    def __getAllPilImages(self, imageInfos : [ImageInfo]) -> [Image]:
+        pilImages = []
 
-    def __getPredictionsForProperlySizedImage(self, imageInfo : ImageInfo) -> [PredictionInfo]:
-        pilImage = imageInfo.getPilImage()
-        finalImage = self.__generateImageArrayForPrediction(pilImage)
-        predictionInfos = self.__model.predict(finalImage)
-        return predictionInfos
+        for imageInfo in imageInfos:
+            pilImages.append(imageInfo.getPilImage())
 
+        return pilImages
 
-    def __generateImageArrayForPrediction(self, pilImage : Image):
-        imageArray= image_processing.img_to_array(pilImage)
-        return self.__reshapeImageForPrediction(imageArray)
-
-    def __reshapeImageForPrediction(self, imageArray : [int]):
-        width = self.__model.getImageWidth()
-        height = self.__model.getImageHeight()
-        return imageArray.reshape(1, 3, width, height)
