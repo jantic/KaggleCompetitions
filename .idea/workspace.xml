@@ -2,12 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ad16c8f4-7035-4e14-a503-806415698572" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CatsVsDogsRedux/submission_results.xlsx" afterPath="$PROJECT_DIR$/CatsVsDogsRedux/submission_results.xlsx" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/common/model/deeplearning/imagerec/ImagePredictionRequest.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/common/model/deeplearning/imagerec/ImagePredictionResult.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py" afterPath="$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/model/deeplearning/imagerec/IDeepLearningModel.py" afterPath="$PROJECT_DIR$/common/model/deeplearning/imagerec/IDeepLearningModel.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/model/deeplearning/imagerec/MasterImageClassifier.py" afterPath="$PROJECT_DIR$/common/model/deeplearning/imagerec/MasterImageClassifier.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py" afterPath="$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionInfo.py" afterPath="$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionInfo.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionsSummary.py" afterPath="$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionsSummary.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/common/image/ModelImagelConverter.py" afterPath="$PROJECT_DIR$/common/image/ModelImageConverter.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -19,11 +23,11 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="CatsVsDogs.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="CatsVsDogs.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="323">
-              <caret line="19" column="38" lean-forward="true" selection-start-line="19" selection-start-column="38" selection-end-line="19" selection-end-column="38" />
+            <state relative-caret-position="434">
+              <caret line="29" column="0" lean-forward="false" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
               <folding>
                 <element signature="e#0#47#0" expanded="true" />
               </folding>
@@ -34,8 +38,8 @@
       <file leaf-file-name="MasterImageClassifier.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/MasterImageClassifier.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="541">
-              <caret line="66" column="65" lean-forward="true" selection-start-line="66" selection-start-column="65" selection-end-line="66" selection-end-column="65" />
+            <state relative-caret-position="161">
+              <caret line="43" column="38" lean-forward="false" selection-start-line="43" selection-start-column="31" selection-end-line="43" selection-end-column="38" />
               <folding>
                 <element signature="e#0#44#0" expanded="true" />
               </folding>
@@ -43,57 +47,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ModelImagelConverter.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/image/ModelImagelConverter.py">
+      <file leaf-file-name="ModelImageConverter.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/common/image/ModelImageConverter.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="430">
-              <caret line="26" column="34" lean-forward="false" selection-start-line="26" selection-start-column="34" selection-end-line="26" selection-end-column="34" />
+            <state relative-caret-position="195">
+              <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
               <folding>
                 <element signature="e#0#57#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PredictionInfo.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionInfo.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="42" lean-forward="true" selection-start-line="6" selection-start-column="42" selection-end-line="6" selection-end-column="42" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="PredictionsSummary.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionsSummary.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="8" lean-forward="false" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="38" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="vgg16.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="305">
-              <caret line="65" column="72" lean-forward="true" selection-start-line="65" selection-start-column="72" selection-end-line="65" selection-end-column="72" />
-              <folding>
-                <element signature="e#0#47#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="KaggleCsvWriter.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/output/csv/KaggleCsvWriter.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="289">
-              <caret line="17" column="48" lean-forward="true" selection-start-line="17" selection-start-column="48" selection-end-line="17" selection-end-column="48" />
-              <folding>
-                <marker date="1492904556681" expanded="true" signature="0:19" ph="import ..." />
               </folding>
             </state>
           </provider>
@@ -102,8 +62,8 @@
       <file leaf-file-name="ImageInfo.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/image/ImageInfo.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="162">
-              <caret line="41" column="0" lean-forward="true" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
+            <state relative-caret-position="128">
+              <caret line="36" column="22" lean-forward="false" selection-start-line="36" selection-start-column="8" selection-end-line="36" selection-end-column="22" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -111,21 +71,35 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ImageSplitter.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/image/ImageSplitter.py">
+      <file leaf-file-name="vgg16.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1411">
-              <caret line="83" column="62" lean-forward="true" selection-start-line="83" selection-start-column="62" selection-end-line="83" selection-end-column="62" />
-              <folding />
+            <state relative-caret-position="280">
+              <caret line="58" column="85" lean-forward="false" selection-start-line="58" selection-start-column="85" selection-end-line="58" selection-end-column="85" />
+              <folding>
+                <element signature="e#0#47#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="image.py" pinned="false" current-in-tab="false">
-        <entry file="file://$USER_HOME$/Anaconda3/envs/tensorflow/Lib/site-packages/keras/preprocessing/image.py">
+      <file leaf-file-name="PredictionsSummary.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionsSummary.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-604">
-              <caret line="723" column="63" lean-forward="true" selection-start-line="723" selection-start-column="63" selection-end-line="723" selection-end-column="63" />
+            <state relative-caret-position="68">
+              <caret line="4" column="18" lean-forward="true" selection-start-line="4" selection-start-column="6" selection-end-line="4" selection-end-column="24" />
+              <folding>
+                <element signature="e#0#44#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="ImagePredictionResult.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/ImagePredictionResult.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="170">
+              <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -190,18 +164,21 @@
         <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/ImageClassifer.py" />
         <option value="$PROJECT_DIR$/common/utils/utils.py" />
         <option value="$PROJECT_DIR$/common/output/csv/KaggleCsvWriter.py" />
-        <option value="$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionInfo.py" />
         <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16bn.py" />
         <option value="$PROJECT_DIR$/common/image/ImageProcessing.py" />
         <option value="$PROJECT_DIR$/common/image/ImageProcessor.py" />
-        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/IDeepLearningModel.py" />
         <option value="$PROJECT_DIR$/common/image/ImageSplitter.py" />
-        <option value="$PROJECT_DIR$/common/image/ImageInfo.py" />
         <option value="$PROJECT_DIR$/common/image/ModelImagelConverter.py" />
+        <option value="$PROJECT_DIR$/common/image/ImageInfo.py" />
+        <option value="$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionInfo.py" />
+        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/ImagePredictionRequest.py" />
+        <option value="$PROJECT_DIR$/common/image/ModelImageConverter.py" />
         <option value="$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionsSummary.py" />
-        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py" />
-        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/MasterImageClassifier.py" />
+        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/ImagePredictionResult.py" />
+        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/IDeepLearningModel.py" />
         <option value="$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py" />
+        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/MasterImageClassifier.py" />
+        <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py" />
       </list>
     </option>
   </component>
@@ -629,11 +606,11 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15416667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17291667" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2832981" sideWeight="0.50208336" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21670191" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.35306555" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32241014" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.26321355" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -662,21 +639,11 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="106" />
+      <option name="time" value="116" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" column="13" lean-forward="true" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#47#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
@@ -977,16 +944,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/IDeepLearningModel.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="27" lean-forward="true" selection-start-line="6" selection-start-column="27" selection-end-line="6" selection-end-column="27" />
-          <folding>
-            <element signature="e#0#39#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16bn.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
@@ -1019,16 +976,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/image/ImageInfo.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="162">
-          <caret line="41" column="0" lean-forward="true" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/output/csv/KaggleCsvWriter.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="289">
@@ -1039,56 +986,94 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="305">
-          <caret line="65" column="72" lean-forward="true" selection-start-line="65" selection-start-column="72" selection-end-line="65" selection-end-column="72" />
-          <folding>
-            <element signature="e#0#47#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionInfo.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="42" lean-forward="true" selection-start-line="6" selection-start-column="42" selection-end-line="6" selection-end-column="42" />
+        <state relative-caret-position="51">
+          <caret line="3" column="143" lean-forward="false" selection-start-line="3" selection-start-column="143" selection-end-line="3" selection-end-column="143" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionsSummary.py">
+    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/ImagePredictionRequest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="8" lean-forward="false" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="38" />
+        <state relative-caret-position="153">
+          <caret line="9" column="48" lean-forward="true" selection-start-line="9" selection-start-column="48" selection-end-line="9" selection-end-column="48" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/image/ModelImagelConverter.py">
+    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/IDeepLearningModel.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="430">
-          <caret line="26" column="34" lean-forward="false" selection-start-line="26" selection-start-column="34" selection-end-line="26" selection-end-column="34" />
+        <state relative-caret-position="357">
+          <caret line="21" column="78" lean-forward="true" selection-start-line="21" selection-start-column="78" selection-end-line="21" selection-end-column="78" />
           <folding>
-            <element signature="e#0#57#0" expanded="true" />
+            <element signature="e#0#39#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/MasterImageClassifier.py">
+    <entry file="file://$PROJECT_DIR$/common/image/ImageInfo.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="541">
-          <caret line="66" column="65" lean-forward="true" selection-start-line="66" selection-start-column="65" selection-end-line="66" selection-end-column="65" />
+        <state relative-caret-position="128">
+          <caret line="36" column="22" lean-forward="false" selection-start-line="36" selection-start-column="8" selection-end-line="36" selection-end-column="22" />
           <folding>
-            <element signature="e#0#44#0" expanded="true" />
+            <element signature="e#0#11#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="323">
-          <caret line="19" column="38" lean-forward="true" selection-start-line="19" selection-start-column="38" selection-end-line="19" selection-end-column="38" />
+        <state relative-caret-position="434">
+          <caret line="29" column="0" lean-forward="false" selection-start-line="29" selection-start-column="0" selection-end-line="29" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#47#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/image/ModelImageConverter.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="195">
+          <caret line="12" column="0" lean-forward="false" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#57#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/prediction/PredictionsSummary.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" column="18" lean-forward="true" selection-start-line="4" selection-start-column="6" selection-end-line="4" selection-end-column="24" />
+          <folding>
+            <element signature="e#0#44#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/ImagePredictionResult.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="170">
+          <caret line="10" column="0" lean-forward="false" selection-start-line="10" selection-start-column="0" selection-end-line="10" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/MasterImageClassifier.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="161">
+          <caret line="43" column="38" lean-forward="false" selection-start-line="43" selection-start-column="31" selection-end-line="43" selection-end-column="38" />
+          <folding>
+            <element signature="e#0#44#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="280">
+          <caret line="58" column="85" lean-forward="false" selection-start-line="58" selection-start-column="85" selection-end-line="58" selection-end-column="85" />
           <folding>
             <element signature="e#0#47#0" expanded="true" />
           </folding>

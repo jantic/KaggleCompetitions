@@ -1,9 +1,10 @@
+from common.image.ImageInfo import ImageInfo
 from common.model.deeplearning.prediction import PredictionInfo
 
 
 class PredictionsSummary:
-    def __init__(self, testId : int, predictions : []):
-        self.__testId = testId
+    def __init__(self, imageInfo : ImageInfo, predictions : []):
+        self.__imageInfo = imageInfo
         predictions.sort(reverse=True)
         self.__predictions = predictions
         self.__classIdToConfidence = dict()
@@ -20,7 +21,10 @@ class PredictionsSummary:
         return self.__classIdToConfidence.get(id)
 
     def getTestId(self) -> int:
-        return self.__testId
+        return self.__imageInfo.getImageNumber()
+
+    def getImageInfo(self) -> ImageInfo:
+        return self.__imageInfo
 
     def __lt__(self, other):
         return self.getTopPrediction().getConfidence() < other.getTopPrediction().getConfidence()

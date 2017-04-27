@@ -2,8 +2,18 @@ from keras.preprocessing import image as image_processing
 from PIL.Image import Image
 import PIL.Image
 import numpy as np
+from common.image.ImageInfo import ImageInfo
 
 class ModelImageConverter:
+    @staticmethod
+    def getAllPilImages(imageInfos : [ImageInfo]) -> [Image]:
+        pilImages = []
+
+        for imageInfo in imageInfos:
+            pilImages.append(imageInfo.getPilImage())
+
+        return pilImages
+
     @staticmethod
     def generateImageArrayForPrediction(pilImages : [Image], width : int, height : int) -> [int]:
         resizedPilImages = []

@@ -1,8 +1,8 @@
 from common.image.ImageInfo import ImageInfo
 from common.image.ImageSplitter import ImageSplitter
 from common.model.deeplearning.imagerec.IDeepLearningModel import IDeepLearningModel
+from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
-from common.model.deeplearning.prediction.PredictionInfo import PredictionInfo
 
 
 from PIL.Image import Image
@@ -17,30 +17,53 @@ class MasterImageClassifier:
         self.__model.finetune(trainingBatches)
         self.__model.fit(trainingBatches, validationBatches, nb_epoch=numEpochs)
 
-    def getAllPredictions(self, testImagesPath : str) -> [PredictionsSummary]:
-        imageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
-        predictionSummaries = []
-
-        for imageInfo in imageInfos:
-            predictionSummary = self.getPredictionsForImage(imageInfo)
-            predictionSummaries.append(predictionSummary)
-
-        return predictionSummaries
-
     #Takes source image info, creates different versions of the same image,
     # and returns the prediction with the most confidence
-    def getPredictionsForImage(self, sourceImageInfo : ImageInfo) -> PredictionsSummary:
-        imageInfos = []
-        imageInfos.append(sourceImageInfo)
-        imageInfos.extend(ImageSplitter.getImageDividedIntoSquareQuadrants(sourceImageInfo))
-        imageInfos.extend(ImageSplitter.getImageDividedIntoCrossQuadrants(sourceImageInfo))
-        imageInfos.extend(ImageSplitter.getImageDividedIntoHorizontalHalves(sourceImageInfo))
-        imageInfos.extend(ImageSplitter.getImageDividedIntoVerticalHalves(sourceImageInfo))
-        imageInfos.extend(ImageSplitter.getImageHalfCenter(sourceImageInfo))
-        testId = sourceImageInfo.getImageNumber()
-        pilImages = self.__getAllPilImages(imageInfos)
-        predictionSummaries = self.__model.predict(pilImages, testId)
-        return self.__generateFinalPredictionSummary(predictionSummaries[0], predictionSummaries)
+    # TODO:  Determine batch sizes automatically?  That would be nice!
+    def getAllPredictions(self, testImagesPath : str, batch_size : int) -> [PredictionsSummary]:
+        sourceImageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
+        testImageInfos = self.__generateAllTestImages(sourceImageInfos)
+        predictionSummaries = self.__getPredictionsForAllImages(testImageInfos, batch_size)
+        return predictionSummaries
+
+    def __generateAllTestImages(self, fullImageInfos : [ImageInfo]):
+        testImageInfos = []
+
+        for fullImageInfo in fullImageInfos:
+            testImageInfos.append(fullImageInfo)
+            testImageInfos.extend(ImageSplitter.getImageDividedIntoSquareQuadrants(fullImageInfo))
+            testImageInfos.extend(ImageSplitter.getImageDividedIntoCrossQuadrants(fullImageInfo))
+            testImageInfos.extend(ImageSplitter.getImageDividedIntoHorizontalHalves(fullImageInfo))
+            testImageInfos.extend(ImageSplitter.getImageDividedIntoVerticalHalves(fullImageInfo))
+            testImageInfos.extend(ImageSplitter.getImageHalfCenter(fullImageInfo))
+
+        return testImageInfos
+
+    def __getPredictionsForAllImages(self, imageInfos : [ImageInfo], batch_size : int) -> [PredictionsSummary]:
+        requests = ImagePredictionRequest.generateInstances(imageInfos)
+        results = self.__model.predict(requests, batch_size)
+        finalPredictionSummaries = []
+
+        for result in results:
+            fullImagePredictionSummary = self.__getFullImagePredictionSummary(result.getPredictionSummaries())
+            allPredictionSummaries = result.getPredictionSummaries()
+            finalPredictionSummary = self.__generateFinalPredictionSummary(fullImagePredictionSummary, allPredictionSummaries)
+            finalPredictionSummaries.append(finalPredictionSummary)
+
+        return finalPredictionSummaries
+
+    def __getFullImagePredictionSummary(self, predictionSummaries : [PredictionsSummary]) -> PredictionsSummary:
+        summaryWithLargestImage = predictionSummaries[0]
+
+        for predictionSummary in predictionSummaries:
+            currentImageInfo = predictionSummary.getImageInfo()
+            currentImageArea = currentImageInfo.getWidth() * currentImageInfo.getHeight()
+            topImageInfo = summaryWithLargestImage.getImageInfo()
+            maxImageArea = topImageInfo.getWidth() * topImageInfo.getHeight()
+            if(currentImageArea > maxImageArea):
+                summaryWithLargestImage = predictionSummary
+
+        return summaryWithLargestImage
 
     def __getAllPilImages(self, imageInfos : [ImageInfo]) -> [Image]:
         pilImages = []
@@ -65,6 +88,6 @@ class MasterImageClassifier:
         predictions = predictionSummary.getAllPredictions()
         predictions.sort(reverse=True)
         nextPredictionConfidence = predictions[1].getConfidence()
-        confidenceThreshold = 4.0 #arbitrary, magic, I know
+        confidenceThreshold = 3.0 #arbitrary, magic, I know
         return topPredictionConfidence/nextPredictionConfidence > confidenceThreshold
 

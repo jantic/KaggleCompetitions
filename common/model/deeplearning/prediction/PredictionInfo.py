@@ -1,7 +1,7 @@
 
 class PredictionInfo:
     @staticmethod
-    def generatePredictionInfos(confidences : [float], classIds : [int], classNames : [str], minConfidence: float, maxConfidence : float):
+    def generatePredictionInfos(confidences : [float], classIds : [int], classNames : [str], minConfidence: float, maxConfidence : float) -> []:
         predictionInfos = []
         for i in range(len(confidences)):
             rawConfidence = confidences[i]

@@ -13,11 +13,13 @@ from keras.utils.data_utils import get_file
 import keras
 
 from common.model.deeplearning.imagerec.IDeepLearningModel import IDeepLearningModel
+from common.model.deeplearning.imagerec.ImagePredictionResult import ImagePredictionResult
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 from common.model.deeplearning.prediction.PredictionInfo import PredictionInfo
+from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
 
 from PIL.Image import Image
-from common.image.ModelImagelConverter import ModelImageConverter
+from common.image.ModelImageConverter import ModelImageConverter
 
 vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
 def vgg_preprocess(x):
@@ -49,27 +51,79 @@ class Vgg16(IDeepLearningModel):
         return 224
 
     def getMinConfidence(self):
-        return 0.03
+        return 0.02
 
     def getMaxConfidence(self):
-        return 0.97
+        return 0.98
 
-    #Assumes same image split into multiple parts
-    def predict(self, pilImages : [Image], id : int, details=False) -> [PredictionsSummary]:
+    #TODO:  Clean this up and break it up into smaller more understandable functions!
+    def predict(self, requests : [ImagePredictionRequest], batch_size, details=False) -> [ImagePredictionResult]:
         verbose = 1 if details else 0
-        imageArray = ModelImageConverter.generateImageArrayForPrediction(pilImages, self.getImageWidth(), self.getImageHeight())
-        confidenceBatches = self.model.predict(imageArray, verbose=verbose)
-        predictionSummaries = []
 
-        for confidences in confidenceBatches:
-            classIds = range(len(confidences))
-            classNames = [self.classes[classId] for classId in classIds]
-            predictionInfos = PredictionInfo.generatePredictionInfos(
-                confidences, classIds, classNames,self.getMinConfidence(), self.getMaxConfidence())
-            predictionSummary = PredictionsSummary(id, predictionInfos)
-            predictionSummaries.append(predictionSummary)
+        testIdToOrderedImageInfos = {}
 
-        return predictionSummaries
+        for request in requests:
+            imageInfos = request.getImageInfos()
+            testId = request.getTestId()
+            if not(testId in testIdToOrderedImageInfos):
+                testIdToOrderedImageInfos[testId] = []
+
+            testIdToOrderedImageInfos[testId].extend(imageInfos)
+
+        currentTestId = list(testIdToOrderedImageInfos.keys())[0]
+        testIdToPredictionSummaries = {}
+
+        batchTestIds = []
+        batchImageInfos = []
+
+        while len(testIdToOrderedImageInfos.keys()) > 0:
+
+            while len(testIdToOrderedImageInfos[currentTestId]) > 0 and len(batchTestIds) < batch_size:
+                imageInfo = testIdToOrderedImageInfos[currentTestId].pop(0)
+                batchImageInfos.append(imageInfo)
+                batchTestIds.append(currentTestId)
+
+
+            if len(testIdToOrderedImageInfos[currentTestId]) == 0:
+                del testIdToOrderedImageInfos[currentTestId]
+                if len(testIdToOrderedImageInfos.keys()) > 0:
+                    currentTestId = list(testIdToOrderedImageInfos.keys())[0]
+                else:
+                    currentTestId = None
+
+            if len(batchTestIds) >= batch_size or (len(testIdToOrderedImageInfos.keys())==0):
+                batchPilImages = ModelImageConverter.getAllPilImages(batchImageInfos)
+                imageArray = ModelImageConverter.generateImageArrayForPrediction(batchPilImages, self.getImageWidth(), self.getImageHeight())
+                confidenceBatches = self.model.predict(imageArray, verbose=verbose)
+
+                for index in range(len(confidenceBatches)):
+                    testId = batchTestIds[index]
+                    imageInfo = batchImageInfos[index]
+                    confidences = confidenceBatches[index]
+                    classIds = range(len(confidences))
+                    classNames = [self.classes[classId] for classId in classIds]
+                    predictionInfos = PredictionInfo.generatePredictionInfos(
+                        confidences, classIds, classNames, self.getMinConfidence(), self.getMaxConfidence())
+                    predictionSummary = PredictionsSummary(imageInfo, predictionInfos)
+
+                    if not(testId in testIdToPredictionSummaries):
+                        testIdToPredictionSummaries[testId] = []
+
+                    testIdToPredictionSummaries[testId].append(predictionSummary)
+
+                batchTestIds = []
+                batchImageInfos = []
+
+
+        imagePredictionResults = []
+
+        for testId in testIdToPredictionSummaries.keys():
+            predictionSummaries = testIdToPredictionSummaries[testId]
+            imagePredictionResult = ImagePredictionResult.getInstance(testId, predictionSummaries)
+            imagePredictionResults.append(imagePredictionResult)
+
+        return imagePredictionResults
+
 
     def ConvBlock(self, layers, filters):
         model = self.model
