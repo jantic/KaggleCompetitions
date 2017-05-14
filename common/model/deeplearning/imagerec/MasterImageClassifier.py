@@ -1,14 +1,13 @@
 from common.image.ImageInfo import ImageInfo
 from common.image.ImageSplitter import ImageSplitter
-from common.model.deeplearning.imagerec.IDeepLearningModel import IDeepLearningModel
+from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
 from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
-
 
 from PIL.Image import Image
 
 class MasterImageClassifier:
-    def __init__(self, model : IDeepLearningModel):
+    def __init__(self, model : IImageRecModel):
         self.__model = model
 
     def refineTraining(self, trainingImagesPath : str, training_batch_size : int, validationImagesPath : str, validation_batch_size : int, numEpochs : int):
@@ -51,6 +50,7 @@ class MasterImageClassifier:
             finalPredictionSummaries.append(finalPredictionSummary)
 
         return finalPredictionSummaries
+
 
     def __getFullImagePredictionSummary(self, predictionSummaries : [PredictionsSummary]) -> PredictionsSummary:
         summaryWithLargestImage = predictionSummaries[0]

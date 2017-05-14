@@ -5,7 +5,7 @@ from common.model.deeplearning.imagerec.ImagePredictionResult import ImagePredic
 
 
 #Interface
-class IDeepLearningModel:
+class IImageRecModel:
     __metaclass__ = ABCMeta
 
     @abstractmethod
