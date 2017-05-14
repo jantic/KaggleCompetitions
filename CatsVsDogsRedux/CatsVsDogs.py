@@ -30,3 +30,4 @@ imageClassifer.refineTraining(trainingSetPath, training_batch_size, validationSe
 predictionSummaries = imageClassifer.getAllPredictions(testSetPath, test_batch_size)
 csvWriter = KaggleCsvWriter()
 csvWriter.writePredictionsForClassIdToCsv(predictionSummaries, 1)
+
