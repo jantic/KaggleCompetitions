@@ -22,7 +22,17 @@ class MasterImageClassifier:
     def getAllPredictions(self, testImagesPath : str, batch_size : int) -> [PredictionsSummary]:
         sourceImageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
         testImageInfos = self.__generateAllTestImages(sourceImageInfos)
-        predictionSummaries = self.__getPredictionsForAllImages(testImageInfos, batch_size)
+
+        predictionSummaries = []
+
+        #To reduce memory footprint- only request one batch at a time
+        while len(testImageInfos) > 0:
+            batchTestImageInfos = []
+            while len(testImageInfos) > 0 and len(batchTestImageInfos) < batch_size:
+                batchTestImageInfos.append(testImageInfos.pop())
+
+            predictionSummaries.extend(self.__getPredictionsForAllImages(batchTestImageInfos, batch_size))
+
         return predictionSummaries
 
     def __generateAllTestImages(self, fullImageInfos : [ImageInfo]):

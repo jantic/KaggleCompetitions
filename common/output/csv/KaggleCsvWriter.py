@@ -10,7 +10,8 @@ class KaggleCsvWriter:
         for predictionSummary in predictionsSummaries:
             testId = predictionSummary.getTestId()
             confidence = predictionSummary.getConfidenceForClassId(classId)
-            records.append({'id': testId, 'label': confidence})
+            clippedConfidence = 0.02 if confidence < 0.02 else (0.98 if confidence > 0.98 else confidence)
+            records.append({'id': testId, 'label': clippedConfidence})
 
         df = pd.DataFrame.from_records(records)
         df['id'] = pd.to_numeric(df['id'])

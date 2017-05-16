@@ -12,13 +12,10 @@ from keras.preprocessing import image
 from keras.utils.data_utils import get_file
 import keras
 
+from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import BatchImagePredictionRequestInfo
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
 from common.model.deeplearning.imagerec.ImagePredictionResult import ImagePredictionResult
-from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
-from common.model.deeplearning.prediction.PredictionInfo import PredictionInfo
 from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
-from common.image.ModelImageConverter import ModelImageConverter
-from common.image.ImageInfo import ImageInfo
 
 
 vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
@@ -59,88 +56,10 @@ class Vgg16(IImageRecModel):
     #TODO:  Clean this up and break it up into smaller more understandable functions!
     def predict(self, imagePredictionRequests : [ImagePredictionRequest], batch_size : int, details=False) -> [ImagePredictionResult]:
         verbose = 1 if details else 0
-        testIdToOrderedImageInfos = self.__generateTestIdToOrderedImageInfosMapping(imagePredictionRequests)
-        batchTestIds, batchImageInfos = self.__generateBatchData(testIdToOrderedImageInfos)
-        batchPilImages = ModelImageConverter.getAllPilImages(batchImageInfos)
-        imageArray = ModelImageConverter.generateImageArrayForPrediction(batchPilImages, self.getImageWidth(), self.getImageHeight())
-        batchConfidences = self.model.predict(imageArray, batch_size=batch_size, verbose=verbose)
-        testIdToPredictionSummaries = self.__generateTestIdToPredictionSummaries(batchConfidences, batchTestIds, batchImageInfos)
-
-        imagePredictionResults = self.__generateImagePredictionResults(testIdToPredictionSummaries)
+        batchRequestInfo = BatchImagePredictionRequestInfo.getInstance(imagePredictionRequests, self.getImageWidth(), self.getImageHeight())
+        batchConfidences = self.model.predict(batchRequestInfo.getImageArray(), batch_size=batch_size, verbose=verbose)
+        imagePredictionResults = ImagePredictionResult.generateImagePredictionResults(batchConfidences, batchRequestInfo, self.classes)
         return imagePredictionResults
-
-    def __generateImagePredictionResults(self, testIdToPredictionSummaries : {}) -> [ImagePredictionResult]:
-        imagePredictionResults = []
-
-        for testId in testIdToPredictionSummaries.keys():
-            predictionSummaries = testIdToPredictionSummaries[testId]
-            imagePredictionResult = ImagePredictionResult.getInstance(testId, predictionSummaries)
-            imagePredictionResults.append(imagePredictionResult)
-
-        return imagePredictionResults
-
-    def __generateTestIdToPredictionSummaries(self, batchConfidences : [float], batchTestIds : [int], batchImageInfos : [ImageInfo]) -> {}:
-        testIdToPredictionSummaries = {}
-
-        for index in range(len(batchConfidences)):
-            testId = batchTestIds[index]
-            imageInfo = batchImageInfos[index]
-            confidences = batchConfidences[index]
-            predictionSummary = self.__generatePredictionSummary(testId, imageInfo, confidences)
-
-            if not (testId in testIdToPredictionSummaries):
-                testIdToPredictionSummaries[testId] = []
-
-            testIdToPredictionSummaries[testId].append(predictionSummary)
-
-        return testIdToPredictionSummaries
-
-    def __generateBatchData(self, testIdToOrderedImageInfos : {}):
-        batchTestIds = []
-        batchImageInfos = []
-
-        for testId in testIdToOrderedImageInfos.keys():
-            self.__prepareDataForForBatch(testIdToOrderedImageInfos, testId, batchTestIds, batchImageInfos)
-
-        return batchTestIds, batchImageInfos
-
-    def __getCurrentTestId(self, testIdToOrderedImageInfos : {}, previousTestId : int) -> int:
-        if previousTestId == None:
-            return list(testIdToOrderedImageInfos.keys())[0]
-
-        if not previousTestId in testIdToOrderedImageInfos:
-            if len(testIdToOrderedImageInfos.keys()) > 0:
-                return list(testIdToOrderedImageInfos.keys())[0]
-            else:
-                return None
-        else:
-            return previousTestId
-
-    def __prepareDataForForBatch(self, testIdToOrderedImageInfos : {}, currentTestId : int, batchTestIds : [int], batchImageInfos : [ImageInfo]):
-        for imageInfo in testIdToOrderedImageInfos[currentTestId]:
-            batchImageInfos.append(imageInfo)
-            batchTestIds.append(currentTestId)
-
-    def __generatePredictionSummary(self, testId : int, imageInfo : ImageInfo, confidences : [float]) -> PredictionsSummary:
-        classIds = range(len(confidences))
-        classNames = [self.classes[classId] for classId in classIds]
-        predictionInfos = PredictionInfo.generatePredictionInfos(
-            confidences, classIds, classNames, self.getMinConfidence(), self.getMaxConfidence())
-        predictionSummary = PredictionsSummary(imageInfo, predictionInfos)
-        return predictionSummary
-
-    def __generateTestIdToOrderedImageInfosMapping(self, imagePredictionRequests : [ImagePredictionRequest]) -> {}:
-        testIdToOrderedImageInfos = {}
-
-        for imagePredictionRequest in imagePredictionRequests:
-            imageInfos = imagePredictionRequest.getImageInfos()
-            testId = imagePredictionRequest.getTestId()
-            if not(testId in testIdToOrderedImageInfos):
-                testIdToOrderedImageInfos[testId] = []
-
-            testIdToOrderedImageInfos[testId].extend(imageInfos)
-
-        return testIdToOrderedImageInfos
 
     def ConvBlock(self, layers, filters):
         model = self.model
