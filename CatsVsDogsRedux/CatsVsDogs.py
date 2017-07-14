@@ -15,11 +15,12 @@ from common.model.deeplearning.imagerec.pretrained.vgg16 import Vgg16
 from common.output.csv.KaggleCsvWriter import KaggleCsvWriter
 from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImageClassifier
 
-dataPath = "data/sample/"
+dataPath = "data/"
+#dataPath = "data/sample/"
 trainingSetPath = dataPath + "train"
 validationSetPath = dataPath + "valid"
 testSetPath = dataPath + "test1"
-numberOfEpochs = 1
+numberOfEpochs = 10
 training_batch_size = 64
 validation_batch_size = 80
 test_batch_size = 80
@@ -27,7 +28,7 @@ vgg = Vgg16()
 
 imageClassifer = MasterImageClassifier(vgg)
 imageClassifer.refineTraining(trainingSetPath, training_batch_size, validationSetPath, validation_batch_size, numberOfEpochs)
-predictionSummaries = imageClassifer.getAllPredictions(testSetPath, test_batch_size)
+predictionSummaries = imageClassifer.getAllPredictions(testSetPath, False, test_batch_size)
 csvWriter = KaggleCsvWriter()
 csvWriter.writePredictionsForClassIdToCsv(predictionSummaries, 1)
 

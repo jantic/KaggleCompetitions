@@ -3,6 +3,7 @@ from common.image.ImageSplitter import ImageSplitter
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
 from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
+from common.math.MathUtils import MathUtils
 
 from PIL.Image import Image
 
@@ -19,32 +20,37 @@ class MasterImageClassifier:
     #Takes source image info, creates different versions of the same image,
     # and returns the prediction with the most confidence
     # TODO:  Determine batch sizes automatically?  That would be nice!
-    def getAllPredictions(self, testImagesPath : str, batch_size : int) -> [PredictionsSummary]:
+    def getAllPredictions(self, testImagesPath : str, useImageSplitting : bool, batch_size : int) -> [PredictionsSummary]:
         sourceImageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
-        testImageInfos = self.__generateAllTestImages(sourceImageInfos)
+        testImageInfos = self.__generateAllTestImages(sourceImageInfos, useImageSplitting)
 
         predictionSummaries = []
+        imagesPerTestId = len(testImageInfos)/len(sourceImageInfos)
+        requestSize = MathUtils.lcm(batch_size, imagesPerTestId);
 
-        #To reduce memory footprint- only request one batch at a time
         while len(testImageInfos) > 0:
             batchTestImageInfos = []
-            while len(testImageInfos) > 0 and len(batchTestImageInfos) < batch_size:
+            # To reduce memory footprint- only request a portion at a time that is lcm of the batch size and number of
+            # test images per test id, to group same test id images together
+            while len(testImageInfos) > 0 and len(batchTestImageInfos) < requestSize:
                 batchTestImageInfos.append(testImageInfos.pop())
 
             predictionSummaries.extend(self.__getPredictionsForAllImages(batchTestImageInfos, batch_size))
 
         return predictionSummaries
 
-    def __generateAllTestImages(self, fullImageInfos : [ImageInfo]):
+    def __generateAllTestImages(self, fullImageInfos : [ImageInfo], useImageSplitting : bool):
         testImageInfos = []
 
         for fullImageInfo in fullImageInfos:
             testImageInfos.append(fullImageInfo)
-            testImageInfos.extend(ImageSplitter.getImageDividedIntoSquareQuadrants(fullImageInfo))
-            testImageInfos.extend(ImageSplitter.getImageDividedIntoCrossQuadrants(fullImageInfo))
-            testImageInfos.extend(ImageSplitter.getImageDividedIntoHorizontalHalves(fullImageInfo))
-            testImageInfos.extend(ImageSplitter.getImageDividedIntoVerticalHalves(fullImageInfo))
-            testImageInfos.extend(ImageSplitter.getImageHalfCenter(fullImageInfo))
+
+            if useImageSplitting:
+                testImageInfos.extend(ImageSplitter.getImageDividedIntoSquareQuadrants(fullImageInfo))
+                testImageInfos.extend(ImageSplitter.getImageDividedIntoCrossQuadrants(fullImageInfo))
+                testImageInfos.extend(ImageSplitter.getImageDividedIntoHorizontalHalves(fullImageInfo))
+                testImageInfos.extend(ImageSplitter.getImageDividedIntoVerticalHalves(fullImageInfo))
+                testImageInfos.extend(ImageSplitter.getImageHalfCenter(fullImageInfo))
 
         return testImageInfos
 
