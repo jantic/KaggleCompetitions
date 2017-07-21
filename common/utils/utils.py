@@ -174,7 +174,7 @@ def mk_square(img):
 
 
 def vgg_ft(out_dim):
-    vgg = Vgg16()
+    vgg = Vgg16(None)
     vgg.ft(out_dim)
     model = vgg.model
     return model

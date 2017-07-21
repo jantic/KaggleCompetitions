@@ -3,6 +3,8 @@ from __future__ import absolute_import
 
 import json
 import numpy as np
+import os.path
+import time
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.models import Sequential
@@ -27,22 +29,31 @@ def vgg_preprocess(x):
 class Vgg16(IImageRecModel):
     """The VGG 16 Imagenet model"""
 
-    def __init__(self):
-        self.FILE_PATH = 'http://www.platform.ai/models/'
-        self.__create()
+    def __init__(self, loadWeightsFromCache: bool):
+        self.ORIGINAL_MODEL_WEIGHTS_URL = 'http://www.platform.ai/models/'
+        self.__create(loadWeightsFromCache)
         self.__get_classes()
-
-    def saveWeights(self, filePath: str):
-        self.model.save(filePath)
-
-    def loadWeights(self, filePath: str):
-        self.model.load_weights(filePath, True)
 
     def refineTraining(self, trainingImagesPath: str, training_batch_size: int, validationImagesPath: str, validation_batch_size: int, numEpochs: int):
         trainingBatches = self.__getBatches(trainingImagesPath, batch_size=training_batch_size)
         validationBatches = self.__getBatches(validationImagesPath, batch_size=validation_batch_size)
         self.__finetune(trainingBatches)
-        self.__fit(trainingBatches, validationBatches, nb_epoch=numEpochs)
+        startingEpoch = self.__getLatestCachedEpochNum() + 1
+
+        for epoch in range(startingEpoch, numEpochs):
+            if epoch > 2:
+                self.model.optimizer.lr = 0.01
+
+            print('-------------Actual Epoch: ' + str(epoch) + ' of ' + str(numEpochs) + ' epochs--------------')
+            self.__fit(trainingBatches, validationBatches, nb_epoch=1)
+            self.__saveWeights(epoch)
+
+    def predict(self, imagePredictionRequests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]:
+        verbose = 1 if details else 0
+        batchRequestInfo = BatchImagePredictionRequestInfo.getInstance(imagePredictionRequests, self.getImageWidth(), self.getImageHeight())
+        batchConfidences = self.model.predict(batchRequestInfo.getImageArray(), batch_size=batch_size, verbose=verbose)
+        imagePredictionResults = ImagePredictionResult.generateImagePredictionResults(batchConfidences, batchRequestInfo, self.classes)
+        return imagePredictionResults
 
     def getImageWidth(self):
         return 224
@@ -50,26 +61,28 @@ class Vgg16(IImageRecModel):
     def getImageHeight(self):
         return 224
 
+    def __generateEpochWeightsCachePath(self, epochNum: int):
+        dir = "./cache"
+        if not os.path.isdir(dir):
+            os.mkdir(dir)
+
+        return dir + "/vgg16_epoch_" + str(epochNum) + ".h5"
+
+    def __getLatestCachedEpochNum(self):
+        epochNum = 1
+
+        while True:
+            if not os.path.isfile(self.__generateEpochWeightsCachePath(epochNum)):
+                return epochNum -1
+            epochNum = epochNum + 1
+
+
     def __get_classes(self):
         fname = 'imagenet_class_index.json'
-        fpath = get_file(fname, self.FILE_PATH + fname, cache_subdir='models')
+        fpath = get_file(fname, self.ORIGINAL_MODEL_WEIGHTS_URL + fname, cache_subdir='models')
         with open(fpath) as f:
             class_dict = json.load(f)
         self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
-
-    def __getMinConfidence(self):
-        return 0.02
-
-    def __getMaxConfidence(self):
-        return 0.98
-
-    # TODO:  Clean this up and break it up into smaller more understandable functions!
-    def predict(self, imagePredictionRequests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]:
-        verbose = 1 if details else 0
-        batchRequestInfo = BatchImagePredictionRequestInfo.getInstance(imagePredictionRequests, self.getImageWidth(), self.getImageHeight())
-        batchConfidences = self.model.predict(batchRequestInfo.getImageArray(), batch_size=batch_size, verbose=verbose)
-        imagePredictionResults = ImagePredictionResult.generateImagePredictionResults(batchConfidences, batchRequestInfo, self.classes)
-        return imagePredictionResults
 
     def __ConvBlock(self, layers, filters):
         model = self.model
@@ -83,7 +96,7 @@ class Vgg16(IImageRecModel):
         model.add(Dense(4096, activation='relu'))
         model.add(Dropout(0.5))
 
-    def __create(self):
+    def __create(self, loadWeightsFromCache: bool):
         model = self.model = Sequential()
         model.add(Lambda(vgg_preprocess, input_shape=(3, self.getImageWidth(), self.getImageHeight()),
                          output_shape=(3, self.getImageWidth(), self.getImageHeight())))
@@ -99,7 +112,14 @@ class Vgg16(IImageRecModel):
         model.add(Dense(1000, activation='softmax'))
 
         fname = 'vgg16.h5'
-        model.load_weights(get_file(fname, self.FILE_PATH + fname, cache_subdir='models'))
+
+        latestCachedEpoch = self.__getLatestCachedEpochNum()
+
+        if loadWeightsFromCache and latestCachedEpoch > 0:
+            cachedPath = self.__generateEpochWeightsCachePath(latestCachedEpoch)
+            model.load_weights(cachedPath, True)
+        else:
+            model.load_weights(get_file(fname, self.ORIGINAL_MODEL_WEIGHTS_URL, cache_subdir='models'))
 
     def __getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
         return gen.flow_from_directory(path, target_size=(self.getImageWidth(), self.getImageHeight()),
@@ -135,3 +155,12 @@ class Vgg16(IImageRecModel):
     def __test(self, path, batch_size=8):
         test_batches = self.__getBatches(path, shuffle=False, batch_size=batch_size, class_mode=None)
         return test_batches, self.model.predict_generator(test_batches, test_batches.nb_sample)
+
+    def __saveWeights(self, epochNum: int):
+        filePath = self.__generateEpochWeightsCachePath(epochNum)
+        try:
+            self.model.save(filePath)
+        except AttributeError as error:
+            print(error)
+
+

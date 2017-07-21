@@ -17,10 +17,4 @@ class IImageRecModel:
     def predict(self, requests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]: raise NotImplementedError
 
     @abstractmethod
-    def saveWeights(self, filePath): raise NotImplementedError
-
-    @abstractmethod
-    def loadWeights(self, filePath): raise NotImplementedError
-
-    @abstractmethod
     def refineTraining(self, trainingImagesPath: str, training_batch_size: int, validationImagesPath: str, validation_batch_size: int, numEpochs: int): raise NotImplementedError
