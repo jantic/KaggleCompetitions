@@ -7,26 +7,21 @@ from common.math.MathUtils import MathUtils
 
 from PIL.Image import Image
 
+
 class MasterImageClassifier:
-    def __init__(self, model : IImageRecModel):
+    def __init__(self, model: IImageRecModel):
         self.__model = model
 
-    def refineTraining(self, trainingImagesPath : str, training_batch_size : int, validationImagesPath : str, validation_batch_size : int, numEpochs : int):
-        trainingBatches = self.__model.getBatches(trainingImagesPath, batch_size=training_batch_size)
-        validationBatches = self.__model.getBatches(validationImagesPath, batch_size=validation_batch_size)
-        self.__model.finetune(trainingBatches)
-        self.__model.fit(trainingBatches, validationBatches, nb_epoch=numEpochs)
-
-    #Takes source image info, creates different versions of the same image,
+    # Takes source image info, creates different versions of the same image,
     # and returns the prediction with the most confidence
     # TODO:  Determine batch sizes automatically?  That would be nice!
-    def getAllPredictions(self, testImagesPath : str, useImageSplitting : bool, batch_size : int) -> [PredictionsSummary]:
+    def getAllPredictions(self, testImagesPath: str, useImageSplitting: bool, batch_size: int) -> [PredictionsSummary]:
         sourceImageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
         testImageInfos = self.__generateAllTestImages(sourceImageInfos, useImageSplitting)
 
         predictionSummaries = []
-        imagesPerTestId = len(testImageInfos)/len(sourceImageInfos)
-        requestSize = MathUtils.lcm(batch_size, imagesPerTestId);
+        imagesPerTestId = int(round(len(testImageInfos) / len(sourceImageInfos), 0))
+        requestSize = MathUtils.lcm(batch_size, imagesPerTestId)
 
         while len(testImageInfos) > 0:
             batchTestImageInfos = []
@@ -39,7 +34,7 @@ class MasterImageClassifier:
 
         return predictionSummaries
 
-    def __generateAllTestImages(self, fullImageInfos : [ImageInfo], useImageSplitting : bool):
+    def __generateAllTestImages(self, fullImageInfos: [ImageInfo], useImageSplitting: bool):
         testImageInfos = []
 
         for fullImageInfo in fullImageInfos:
@@ -54,7 +49,7 @@ class MasterImageClassifier:
 
         return testImageInfos
 
-    def __getPredictionsForAllImages(self, imageInfos : [ImageInfo], batch_size : int) -> [PredictionsSummary]:
+    def __getPredictionsForAllImages(self, imageInfos: [ImageInfo], batch_size: int) -> [PredictionsSummary]:
         requests = ImagePredictionRequest.generateInstances(imageInfos)
         results = self.__model.predict(requests, batch_size)
         finalPredictionSummaries = []
@@ -67,8 +62,7 @@ class MasterImageClassifier:
 
         return finalPredictionSummaries
 
-
-    def __getFullImagePredictionSummary(self, predictionSummaries : [PredictionsSummary]) -> PredictionsSummary:
+    def __getFullImagePredictionSummary(self, predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
         summaryWithLargestImage = predictionSummaries[0]
 
         for predictionSummary in predictionSummaries:
@@ -76,12 +70,12 @@ class MasterImageClassifier:
             currentImageArea = currentImageInfo.getWidth() * currentImageInfo.getHeight()
             topImageInfo = summaryWithLargestImage.getImageInfo()
             maxImageArea = topImageInfo.getWidth() * topImageInfo.getHeight()
-            if(currentImageArea > maxImageArea):
+            if currentImageArea > maxImageArea:
                 summaryWithLargestImage = predictionSummary
 
         return summaryWithLargestImage
 
-    def __getAllPilImages(self, imageInfos : [ImageInfo]) -> [Image]:
+    def __getAllPilImages(self, imageInfos: [ImageInfo]) -> [Image]:
         pilImages = []
 
         for imageInfo in imageInfos:
@@ -89,21 +83,20 @@ class MasterImageClassifier:
 
         return pilImages
 
-    #Generates "tie-breaker" out of subimage predictions if there isn't sufficient confidence on the top prediction
-    #for the full image.
-    #TODO: How exactly should that threshold be determined...?  For now, using one that works for two classes.  Definitely revisit
-    def __generateFinalPredictionSummary(self, fullImagePredictionSummary : PredictionsSummary, predictionSummaries : [PredictionsSummary]) -> PredictionsSummary:
-        if(self.__meetsMinConfidenceThreshold(fullImagePredictionSummary)):
+    # Generates "tie-breaker" out of subimage predictions if there isn't sufficient confidence on the top prediction
+    # for the full image.
+    # TODO: How exactly should that threshold be determined...?  For now, using one that works for two classes.  Definitely revisit
+    def __generateFinalPredictionSummary(self, fullImagePredictionSummary: PredictionsSummary, predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
+        if self.__meetsMinConfidenceThreshold(fullImagePredictionSummary):
             return fullImagePredictionSummary
 
         predictionSummaries.sort(reverse=True)
         return predictionSummaries[0]
 
-    def __meetsMinConfidenceThreshold(self, predictionSummary : PredictionsSummary):
+    def __meetsMinConfidenceThreshold(self, predictionSummary: PredictionsSummary):
         topPredictionConfidence = predictionSummary.getTopPrediction().getConfidence()
         predictions = predictionSummary.getAllPredictions()
         predictions.sort(reverse=True)
         nextPredictionConfidence = predictions[1].getConfidence()
-        confidenceThreshold = 3.0 #arbitrary, magic, I know
-        return topPredictionConfidence/nextPredictionConfidence > confidenceThreshold
-
+        confidenceThreshold = 3.0  # arbitrary, magic, I know
+        return topPredictionConfidence / nextPredictionConfidence > confidenceThreshold

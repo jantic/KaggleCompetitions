@@ -3,7 +3,7 @@ from common.model.deeplearning.prediction import PredictionInfo
 
 
 class PredictionsSummary:
-    def __init__(self, imageInfo : ImageInfo, predictions : []):
+    def __init__(self, imageInfo: ImageInfo, predictions: []):
         self.__imageInfo = imageInfo
         predictions.sort(reverse=True)
         self.__predictions = predictions
@@ -17,8 +17,8 @@ class PredictionsSummary:
     def getTopPrediction(self) -> PredictionInfo:
         return self.getAllPredictions()[0]
 
-    def getConfidenceForClassId(self, id):
-        return self.__classIdToConfidence.get(id)
+    def getConfidenceForClassId(self, classId):
+        return self.__classIdToConfidence.get(classId)
 
     def getTestId(self) -> int:
         return self.__imageInfo.getImageNumber()

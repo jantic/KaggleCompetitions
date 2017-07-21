@@ -3,12 +3,12 @@ from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import B
 from common.model.deeplearning.prediction.PredictionInfo import PredictionInfo
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 
-class ImagePredictionResult:
 
+class ImagePredictionResult:
     @staticmethod
-    def generateImagePredictionResults(batchConfidences : [float], batchRequestInfo : BatchImagePredictionRequestInfo, classes : {}):
+    def generateImagePredictionResults(batchConfidences: [float], batchRequestInfo: BatchImagePredictionRequestInfo, classes: {}):
         testIdToPredictionSummaries = ImagePredictionResult.__generateTestIdToPredictionSummaries(batchConfidences,
-                                                                                                  batchRequestInfo.getTestIds(),batchRequestInfo.getImageInfos(), classes)
+                                                                                                  batchRequestInfo.getTestIds(), batchRequestInfo.getImageInfos(), classes)
         imagePredictionResults = []
 
         for testId in testIdToPredictionSummaries.keys():
@@ -19,18 +19,18 @@ class ImagePredictionResult:
         return imagePredictionResults
 
     @staticmethod
-    def getInstance(testId : int, predictionSummaries : [PredictionsSummary]):
+    def getInstance(testId: int, predictionSummaries: [PredictionsSummary]):
         return ImagePredictionResult(testId, predictionSummaries)
 
     @staticmethod
-    def __generateTestIdToPredictionSummaries(batchConfidences : [float], batchTestIds : [int], batchImageInfos : [ImageInfo], classes : {}) -> {}:
+    def __generateTestIdToPredictionSummaries(batchConfidences: [float], batchTestIds: [int], batchImageInfos: [ImageInfo], classes: {}) -> {}:
         testIdToPredictionSummaries = {}
 
         for index in range(len(batchConfidences)):
             testId = batchTestIds[index]
             imageInfo = batchImageInfos[index]
             confidences = batchConfidences[index]
-            predictionSummary = ImagePredictionResult.__generatePredictionSummary(testId, imageInfo, confidences, classes)
+            predictionSummary = ImagePredictionResult.__generatePredictionSummary(imageInfo, confidences, classes)
 
             if not (testId in testIdToPredictionSummaries):
                 testIdToPredictionSummaries[testId] = []
@@ -40,7 +40,7 @@ class ImagePredictionResult:
         return testIdToPredictionSummaries
 
     @staticmethod
-    def __generatePredictionSummary(testId : int, imageInfo : ImageInfo, confidences : [float], classes : {}) -> PredictionsSummary:
+    def __generatePredictionSummary(imageInfo: ImageInfo, confidences: [float], classes: {}) -> PredictionsSummary:
         classIds = range(len(confidences))
         classNames = [classes[classId] for classId in classIds]
         predictionInfos = PredictionInfo.generatePredictionInfos(
@@ -48,14 +48,12 @@ class ImagePredictionResult:
         predictionSummary = PredictionsSummary(imageInfo, predictionInfos)
         return predictionSummary
 
-    def __init__(self, testId : int, predictionSummaries : [PredictionsSummary]):
+    def __init__(self, testId: int, predictionSummaries: [PredictionsSummary]):
         self.__testId = testId
         self.__predictionSummaries = predictionSummaries
-
 
     def getTestId(self):
         return self.__testId
 
     def getPredictionSummaries(self):
         return self.__predictionSummaries
-

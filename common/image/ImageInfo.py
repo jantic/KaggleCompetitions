@@ -1,14 +1,14 @@
 import glob
 import os
-import random
 
 from keras.preprocessing import image as image_processing
 import PIL.Image
 from PIL.Image import Image
 
+
 class ImageInfo:
     @staticmethod
-    def loadImageInfosFromDirectory(imagesDirectoryPath : str):
+    def loadImageInfosFromDirectory(imagesDirectoryPath: str):
         fileExtension = "jpg"
         imagesLocator = os.path.join(imagesDirectoryPath, "*/", "*." + fileExtension)
         imagePaths = glob.glob(imagesLocator, recursive=True)
@@ -21,18 +21,19 @@ class ImageInfo:
         return imageInfos
 
     @staticmethod
-    def getInstanceForImagePath(imagePath : str):
+    def getInstanceForImagePath(imagePath: str):
         pilImage = ImageInfo.__loadPILImageFromPath(imagePath)
         imageNumber = ImageInfo.__determineImageNumber(imagePath)
-        return ImageInfo.getInstance(imageNumber, pilImage)
+        return ImageInfo.getInstance(imageNumber, pilImage, imagePath)
 
     @staticmethod
-    def getInstance(imageNumber : int, pilImage : Image):
-        return ImageInfo(imageNumber, pilImage)
+    def getInstance(imageNumber: int, pilImage: Image, imagePath: str):
+        return ImageInfo(imageNumber, pilImage, imagePath)
 
-    def __init__(self, imageNumber : int, pilImage : Image):
+    def __init__(self, imageNumber: int, pilImage: Image, imagePath: str):
         self.__imageNumber = imageNumber
-        self.__pilImage =  pilImage
+        self.__pilImage = pilImage
+        self.__imagePath = imagePath
 
     def getImageNumber(self) -> int:
         return self.__imageNumber
@@ -43,10 +44,10 @@ class ImageInfo:
     def getImagePath(self) -> str:
         return self.__imagePath
 
-    def getWidth(self)-> int:
+    def getWidth(self) -> int:
         return self.__pilImage.width
 
-    def getHeight(self)-> int:
+    def getHeight(self) -> int:
         return self.__pilImage.height
 
     @staticmethod
@@ -54,19 +55,19 @@ class ImageInfo:
         return os.path.split(imagePath)[-1][0:-4]
 
     @staticmethod
-    def __loadPILImageFromPath(imagePath : str) -> Image:
+    def __loadPILImageFromPath(imagePath: str) -> Image:
         return image_processing.load_img(imagePath)
 
     @staticmethod
-    def __generateResizedPilImage(pilImage : Image, width : int, height : int) -> Image:
-        #crop to maintain aspect ratio, then resize
-        aspectRatio = width/height
+    def __generateResizedPilImage(pilImage: Image, width: int, height: int) -> Image:
+        # crop to maintain aspect ratio, then resize
+        aspectRatio = width / height
         croppedWidth = min(int(aspectRatio * pilImage.height), pilImage.width)
-        croppedHeight = min(int(pilImage.width/aspectRatio), pilImage.height)
-        x0 = int((pilImage.width - croppedWidth)/2)
-        y0 = int((pilImage.height - croppedHeight)/2)
-        x1 = pilImage.width - int((pilImage.width - croppedWidth)/2)
-        y1 = pilImage.height - int((pilImage.height - croppedHeight)/2)
+        croppedHeight = min(int(pilImage.width / aspectRatio), pilImage.height)
+        x0 = int((pilImage.width - croppedWidth) / 2)
+        y0 = int((pilImage.height - croppedHeight) / 2)
+        x1 = pilImage.width - int((pilImage.width - croppedWidth) / 2)
+        y1 = pilImage.height - int((pilImage.height - croppedHeight) / 2)
         croppedImage = pilImage.crop((x0, y0, x1, y1))
         resizedImage = croppedImage.resize((width, height), PIL.Image.ANTIALIAS)
         return resizedImage

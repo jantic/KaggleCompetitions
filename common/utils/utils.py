@@ -14,8 +14,8 @@ from common.model.deeplearning.imagerec.pretrained.vgg16 import *
 
 np.set_printoptions(precision=4, linewidth=100)
 
-
 to_bw = np.array([0.299, 0.587, 0.114])
+
 
 def gray(img):
     if K.image_dim_ordering() == 'tf':
@@ -23,11 +23,13 @@ def gray(img):
     else:
         return np.rollaxis(img, 0, 3).dot(to_bw)
 
+
 def to_plot(img):
     if K.image_dim_ordering() == 'tf':
         return np.rollaxis(img, 0, 1).astype(np.uint8)
     else:
         return np.rollaxis(img, 0, 3).astype(np.uint8)
+
 
 def plot(img):
     plt.imshow(to_plot(img))
@@ -35,17 +37,20 @@ def plot(img):
 
 def floor(x):
     return int(math.floor(x))
+
+
 def ceil(x):
     return int(math.ceil(x))
 
-def plots(ims, figsize=(12,6), rows=1, interp=False, titles=None):
+
+def plots(ims, figsize=(12, 6), rows=1, interp=False, titles=None):
     if type(ims[0]) is np.ndarray:
         ims = np.array(ims).astype(np.uint8)
-        if (ims.shape[-1] != 3):
-            ims = ims.transpose((0,2,3,1))
+        if ims.shape[-1] != 3:
+            ims = ims.transpose((0, 2, 3, 1))
     f = plt.figure(figsize=figsize)
     for i in range(len(ims)):
-        sp = f.add_subplot(rows, len(ims)//rows, i+1)
+        sp = f.add_subplot(rows, len(ims) // rows, i + 1)
         sp.axis('Off')
         if titles is not None:
             sp.set_title(titles[i], fontsize=16)
@@ -53,14 +58,14 @@ def plots(ims, figsize=(12,6), rows=1, interp=False, titles=None):
 
 
 def do_clip(arr, mx):
-    clipped = np.clip(arr, (1-mx)/1, mx)
-    return clipped/clipped.sum(axis=1)[:, np.newaxis]
+    clipped = np.clip(arr, (1 - mx) / 1, mx)
+    return clipped / clipped.sum(axis=1)[:, np.newaxis]
 
 
 def get_batches(dirname, gen=image.ImageDataGenerator(), shuffle=True, batch_size=4, class_mode='categorical',
-                target_size=(224,224)):
+                target_size=(224, 224)):
     return gen.flow_from_directory(dirname, target_size=target_size,
-            class_mode=class_mode, shuffle=shuffle, batch_size=batch_size)
+                                   class_mode=class_mode, shuffle=shuffle, batch_size=batch_size)
 
 
 def onehot(x):
@@ -78,7 +83,7 @@ def copy_layers(layers): return [copy_layer(layer) for layer in layers]
 
 
 def copy_weights(from_layers, to_layers):
-    for from_layer,to_layer in zip(from_layers, to_layers):
+    for from_layer, to_layer in zip(from_layers, to_layers):
         to_layer.set_weights(from_layer.get_weights())
 
 
@@ -90,8 +95,8 @@ def copy_model(m):
 
 def insert_layer(model, new_layer, index):
     res = Sequential()
-    for i,layer in enumerate(model.layers):
-        if i==index: res.add(new_layer)
+    for i, layer in enumerate(model.layers):
+        if i == index: res.add(new_layer)
         copied = layer_from_config(wrap_config(layer))
         res.add(copied)
         copied.set_weights(layer.get_weights())
@@ -99,11 +104,11 @@ def insert_layer(model, new_layer, index):
 
 
 def adjust_dropout(weights, prev_p, new_p):
-    scal = (1-prev_p)/(1-new_p)
-    return [o*scal for o in weights]
+    scal = (1 - prev_p) / (1 - new_p)
+    return [o * scal for o in weights]
 
 
-def get_data(path, target_size=(224,224)):
+def get_data(path, target_size=(224, 224)):
     batches = get_batches(path, shuffle=False, batch_size=1, class_mode=None, target_size=target_size)
     return np.concatenate([batches.next() for i in range(batches.nb_sample)])
 
@@ -135,7 +140,7 @@ def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix'
 
 
 def save_array(fname, arr):
-    c=bcolz.carray(arr, rootdir=fname, mode='w')
+    c = bcolz.carray(arr, rootdir=fname, mode='w')
     c.flush()
 
 
@@ -144,27 +149,27 @@ def load_array(fname):
 
 
 def mk_size(img, r2c):
-    r,c,_ = img.shape
-    curr_r2c = r/c
-    new_r, new_c = r,c
-    if r2c>curr_r2c:
-        new_r = floor(c*r2c)
+    r, c, _ = img.shape
+    curr_r2c = r / c
+    new_r, new_c = r, c
+    if r2c > curr_r2c:
+        new_r = floor(c * r2c)
     else:
-        new_c = floor(r/r2c)
+        new_c = floor(r / r2c)
     arr = np.zeros((new_r, new_c, 3), dtype=np.float32)
-    r2=(new_r-r)//2
-    c2=(new_c-c)//2
-    arr[floor(r2):floor(r2)+r,floor(c2):floor(c2)+c] = img
+    r2 = (new_r - r) // 2
+    c2 = (new_c - c) // 2
+    arr[floor(r2):floor(r2) + r, floor(c2):floor(c2) + c] = img
     return arr
 
 
 def mk_square(img):
-    x,y,_ = img.shape
+    x, y, _ = img.shape
     maxs = max(img.shape[:2])
-    y2=(maxs-y)//2
-    x2=(maxs-x)//2
-    arr = np.zeros((maxs,maxs,3), dtype=np.float32)
-    arr[floor(x2):floor(x2)+x,floor(y2):floor(y2)+y] = img
+    y2 = (maxs - y) // 2
+    x2 = (maxs - x) // 2
+    arr = np.zeros((maxs, maxs, 3), dtype=np.float32)
+    arr[floor(x2):floor(x2) + x, floor(y2):floor(y2) + y] = img
     return arr
 
 
@@ -174,6 +179,7 @@ def vgg_ft(out_dim):
     model = vgg.model
     return model
 
+
 def vgg_ft_bn(out_dim):
     vgg = Vgg16BN()
     vgg.ft(out_dim)
@@ -182,18 +188,19 @@ def vgg_ft_bn(out_dim):
 
 
 def get_classes(path):
-    batches = get_batches(path+'train', shuffle=False, batch_size=1)
-    val_batches = get_batches(path+'valid', shuffle=False, batch_size=1)
-    test_batches = get_batches(path+'test', shuffle=False, batch_size=1)
+    batches = get_batches(path + 'train', shuffle=False, batch_size=1)
+    val_batches = get_batches(path + 'valid', shuffle=False, batch_size=1)
+    test_batches = get_batches(path + 'test', shuffle=False, batch_size=1)
     return (val_batches.classes, batches.classes, onehot(val_batches.classes), onehot(batches.classes),
-        val_batches.filenames, batches.filenames, test_batches.filenames)
+            val_batches.filenames, batches.filenames, test_batches.filenames)
 
 
 def split_at(model, layer_type):
     layers = model.layers
-    layer_idx = [index for index,layer in enumerate(layers)
+    layer_idx = [index for index, layer in enumerate(layers)
                  if type(layer) is layer_type][-1]
-    return layers[:layer_idx+1], layers[layer_idx+1:]
+    return layers[:layer_idx + 1], layers[layer_idx + 1:]
+
 
 class MixIterator(object):
     def __init__(self, iters):
@@ -215,9 +222,9 @@ class MixIterator(object):
             nexts = [[next(it) for it in o] for o in self.iters]
             n0 = np.concatenate([n[0] for n in nexts])
             n1 = np.concatenate([n[1] for n in nexts])
-            return (n0, n1)
+            return n0, n1
         else:
             nexts = [next(it) for it in self.iters]
             n0 = np.concatenate([n[0] for n in nexts])
             n1 = np.concatenate([n[1] for n in nexts])
-            return (n0, n1)
+            return n0, n1

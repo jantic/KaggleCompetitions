@@ -4,9 +4,10 @@ import PIL.Image
 import numpy as np
 from common.image.ImageInfo import ImageInfo
 
+
 class ModelImageConverter:
     @staticmethod
-    def getAllPilImages(imageInfos : [ImageInfo]) -> [Image]:
+    def getAllPilImages(imageInfos: [ImageInfo]) -> [Image]:
         pilImages = []
 
         for imageInfo in imageInfos:
@@ -15,11 +16,11 @@ class ModelImageConverter:
         return pilImages
 
     @staticmethod
-    def generateImageArrayForPrediction(pilImages : [Image], width : int, height : int) -> [int]:
+    def generateImageArrayForPrediction(pilImages: [Image], width: int, height: int) -> [int]:
         resizedPilImages = []
 
         for pilImage in pilImages:
-            resizedPilImage= ModelImageConverter.__generateResizedPilImage(pilImage, width, height)
+            resizedPilImage = ModelImageConverter.__generateResizedPilImage(pilImage, width, height)
             resizedPilImages.append(resizedPilImage)
 
         batch_size = len(resizedPilImages)
@@ -34,15 +35,15 @@ class ModelImageConverter:
         return imageArray
 
     @staticmethod
-    def __generateResizedPilImage(pilImage : Image, width : int, height : int) -> Image:
-        #crop to maintain aspect ratio, then resize
-        aspectRatio = width/height
+    def __generateResizedPilImage(pilImage: Image, width: int, height: int) -> Image:
+        # crop to maintain aspect ratio, then resize
+        aspectRatio = width / height
         croppedWidth = min(int(aspectRatio * pilImage.height), pilImage.width)
-        croppedHeight = min(int(pilImage.width/aspectRatio), pilImage.height)
-        x0 = int((pilImage.width - croppedWidth)/2)
-        y0 = int((pilImage.height - croppedHeight)/2)
-        x1 = pilImage.width - int((pilImage.width - croppedWidth)/2)
-        y1 = pilImage.height - int((pilImage.height - croppedHeight)/2)
+        croppedHeight = min(int(pilImage.width / aspectRatio), pilImage.height)
+        x0 = int((pilImage.width - croppedWidth) / 2)
+        y0 = int((pilImage.height - croppedHeight) / 2)
+        x1 = pilImage.width - int((pilImage.width - croppedWidth) / 2)
+        y1 = pilImage.height - int((pilImage.height - croppedHeight) / 2)
         croppedImage = pilImage.crop((x0, y0, x1, y1))
         resizedImage = croppedImage.resize((width, height), PIL.Image.ANTIALIAS)
         return resizedImage

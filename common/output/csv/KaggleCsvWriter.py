@@ -1,8 +1,10 @@
 import pandas as pd
 
+
 class KaggleCsvWriter:
-    def writePredictionsForClassIdToCsv(self, predictionsSummaries : [], classId):
-        if(len(predictionsSummaries) == 0):
+    @staticmethod
+    def writePredictionsForClassIdToCsv(predictionsSummaries: [], classId):
+        if len(predictionsSummaries) == 0:
             return
 
         records = []
