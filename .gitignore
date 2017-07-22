@@ -49,3 +49,4 @@ Temporary Items
 submission.csv
 *.pyc
 data
+*.h5
