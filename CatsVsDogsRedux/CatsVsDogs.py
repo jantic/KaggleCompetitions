@@ -6,22 +6,28 @@ from common.model.deeplearning.imagerec.pretrained import vgg16
 from common.model.deeplearning.imagerec.pretrained.vgg16 import Vgg16
 from common.output.csv.KaggleCsvWriter import KaggleCsvWriter
 from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImageClassifier
+import cProfile
+
 reload(utils)
 np.set_printoptions(precision=4, linewidth=100)
 reload(vgg16)
-
 
 dataPath = "data/"
 #dataPath = "data/sample/"
 trainingSetPath = dataPath + "train"
 validationSetPath = dataPath + "valid"
 testSetPath = dataPath + "test1"
-numberOfEpochs = 30
+numberOfEpochs = 50
 training_batch_size = 64
-validation_batch_size = 80
-test_batch_size = 80
+validation_batch_size = 64
+test_batch_size = 64
 vgg = Vgg16(True, trainingSetPath, training_batch_size, validationSetPath, validation_batch_size)
-vgg.refineTraining(numberOfEpochs)
+# vgg.refineTraining(numberOfEpochs)
 imageClassifer = MasterImageClassifier(vgg)
+
+pr = cProfile.Profile()
+pr.enable()
 predictionSummaries = imageClassifer.getAllPredictions(testSetPath, False, test_batch_size)
+pr.disable()
+pr.print_stats(sort="cumtime")
 KaggleCsvWriter.writePredictionsForClassIdToCsv(predictionSummaries, 1)

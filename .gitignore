@@ -50,3 +50,5 @@ submission.csv
 *.pyc
 data
 *.h5
+*.pstats
+CatsVsDogsRedux/ProfilerResults.xlsx

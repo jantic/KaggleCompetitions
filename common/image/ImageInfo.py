@@ -2,8 +2,9 @@ import glob
 import os
 
 from keras.preprocessing import image as image_processing
-import PIL.Image
 from PIL.Image import Image
+
+from common.image.CropBox import CropBox
 
 
 class ImageInfo:
@@ -22,33 +23,42 @@ class ImageInfo:
 
     @staticmethod
     def getInstanceForImagePath(imagePath: str):
-        pilImage = ImageInfo.__loadPILImageFromPath(imagePath)
         imageNumber = ImageInfo.__determineImageNumber(imagePath)
-        return ImageInfo.getInstance(imageNumber, pilImage, imagePath)
+        return ImageInfo.getInstance(imageNumber, imagePath, None)
 
     @staticmethod
-    def getInstance(imageNumber: int, pilImage: Image, imagePath: str):
-        return ImageInfo(imageNumber, pilImage, imagePath)
+    def getInstance(imageNumber: int, imagePath: str, cropBox: CropBox):
+        return ImageInfo(imageNumber, imagePath, cropBox)
 
-    def __init__(self, imageNumber: int, pilImage: Image, imagePath: str):
+    def __init__(self, imageNumber: int, imagePath: str, cropBox: CropBox):
         self.__imageNumber = imageNumber
-        self.__pilImage = pilImage
         self.__imagePath = imagePath
+        self.__cropBox = cropBox
+        # Just using for dimension info, then discarding to preserve memory
+        pilImage = self.getPilImage()
+        self.__width = pilImage.width
+        self.__height = pilImage.height
 
     def getImageNumber(self) -> int:
         return self.__imageNumber
 
-    def getPilImage(self) -> []:
-        return self.__pilImage
+    # lazy loading, to prevent huge amounts of memory being used
+    def getPilImage(self) -> Image:
+        originalPillImage = ImageInfo.__loadPILImageFromPath(self.__imagePath)
+
+        if self.__cropBox is None:
+            return originalPillImage
+
+        return ImageInfo.__getPilImagePortion(originalPillImage, self.__cropBox)
 
     def getImagePath(self) -> str:
         return self.__imagePath
 
     def getWidth(self) -> int:
-        return self.__pilImage.width
+        return self.__width
 
     def getHeight(self) -> int:
-        return self.__pilImage.height
+        return self.__height
 
     @staticmethod
     def __determineImageNumber(imagePath) -> int:
@@ -59,15 +69,5 @@ class ImageInfo:
         return image_processing.load_img(imagePath)
 
     @staticmethod
-    def __generateResizedPilImage(pilImage: Image, width: int, height: int) -> Image:
-        # crop to maintain aspect ratio, then resize
-        aspectRatio = width / height
-        croppedWidth = min(int(aspectRatio * pilImage.height), pilImage.width)
-        croppedHeight = min(int(pilImage.width / aspectRatio), pilImage.height)
-        x0 = int((pilImage.width - croppedWidth) / 2)
-        y0 = int((pilImage.height - croppedHeight) / 2)
-        x1 = pilImage.width - int((pilImage.width - croppedWidth) / 2)
-        y1 = pilImage.height - int((pilImage.height - croppedHeight) / 2)
-        croppedImage = pilImage.crop((x0, y0, x1, y1))
-        resizedImage = croppedImage.resize((width, height), PIL.Image.ANTIALIAS)
-        return resizedImage
+    def __getPilImagePortion(sourcePilImage: Image, cropBox: CropBox) -> Image:
+        return sourcePilImage.crop((cropBox.getBeginX(), cropBox.getBeginY(), cropBox.getEndX(), cropBox.getEndY()))

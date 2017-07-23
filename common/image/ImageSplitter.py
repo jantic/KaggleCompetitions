@@ -1,3 +1,4 @@
+from common.image.CropBox import CropBox
 from common.image.ImageInfo import ImageInfo
 
 
@@ -73,13 +74,9 @@ class ImageSplitter:
         return newImageInfos
 
     @staticmethod
-    def getImagePortion(sourceImageInfo: ImageInfo, beginX: int, beginY: int, width: int, height: int) -> ImageInfo:
-        sourcePilImage = sourceImageInfo.getPilImage()
-        endX = beginX + width
-        endY = beginY + height
-        newPilImage = sourcePilImage.crop((beginX, beginY, endX, endY))
-        imageNumber = sourceImageInfo.getImageNumber()
-        return ImageInfo.getInstance(imageNumber, newPilImage, sourceImageInfo.getImagePath())
+    def getImagePortion(sourceImageInfo, beginX: int, beginY: int, width: int, height: int):
+        cropBox = CropBox(beginX, beginY, width, height)
+        return ImageInfo.getInstance(sourceImageInfo.getImageNumber(), sourceImageInfo.getImagePath(), cropBox)
 
     @staticmethod
     def getHalfWidth(sourceImageInfo: ImageInfo) -> int:

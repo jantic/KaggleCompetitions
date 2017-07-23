@@ -9,7 +9,7 @@ import re
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.models import Sequential
-from keras.optimizers import Nadam, SGD
+from keras.optimizers import Adam
 from keras.preprocessing import image
 from keras.utils.data_utils import get_file
 from keras.models import load_model
@@ -19,8 +19,6 @@ from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import B
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
 from common.model.deeplearning.imagerec.ImagePredictionResult import ImagePredictionResult
 from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
-from keras.backend import manual_variable_initialization, tf, set_session
-
 
 
 class Vgg16(IImageRecModel):
@@ -38,7 +36,7 @@ class Vgg16(IImageRecModel):
         self.__get_classes()
 
     def refineTraining(self, numEpochs: int):
-        initialEpoch = max(self.LATEST_SAVED_EPOCH,0) if self.LOAD_WEIGHTS_FROM_CACHE else 0
+        initialEpoch = max(self.LATEST_SAVED_EPOCH, 0) if self.LOAD_WEIGHTS_FROM_CACHE else 0
         self.__fit(self.TRAINING_BATCHES, self.VALIDATION_BATCHES, nb_epoch=numEpochs, initial_epoch=initialEpoch)
 
     def predict(self, imagePredictionRequests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]:
@@ -142,7 +140,7 @@ class Vgg16(IImageRecModel):
         self.classes = classes
 
     def __compile(self):
-        optimizer = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+        optimizer = Adam(lr=0.001)
         self.model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
     def __fitData(self, trn, labels, val, val_labels, nb_epoch=1, batch_size=64):
@@ -150,8 +148,8 @@ class Vgg16(IImageRecModel):
                        validation_data=(val, val_labels), batch_size=batch_size)
 
     def __fit(self, batches, val_batches, nb_epoch=1, initial_epoch=0):
-        earlyStopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=3, verbose=1, mode='auto')
-        modelCheckpoint = keras.callbacks.ModelCheckpoint('./cache/weights.{epoch:02d}-{val_loss:.4f}.h5', monitor='val_loss', verbose=0, save_best_only=False,
+        earlyStopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, verbose=1, mode='auto')
+        modelCheckpoint = keras.callbacks.ModelCheckpoint('./cache/weights.{epoch:02d}-{val_loss:.4f}-{val_acc:.4f}.h5', monitor='val_loss', verbose=0, save_best_only=False,
                                                           save_weights_only=False, mode='auto', period=1)
         self.model.fit_generator(batches, samples_per_epoch=batches.nb_sample, nb_epoch=nb_epoch, initial_epoch=initial_epoch,
                                  callbacks=[earlyStopping, modelCheckpoint], validation_data=val_batches, nb_val_samples=val_batches.nb_sample)

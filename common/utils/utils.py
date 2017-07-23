@@ -173,20 +173,6 @@ def mk_square(img):
     return arr
 
 
-def vgg_ft(out_dim):
-    vgg = Vgg16(None)
-    vgg.ft(out_dim)
-    model = vgg.model
-    return model
-
-
-def vgg_ft_bn(out_dim):
-    vgg = Vgg16BN()
-    vgg.ft(out_dim)
-    model = vgg.model
-    return model
-
-
 def get_classes(path):
     batches = get_batches(path + 'train', shuffle=False, batch_size=1)
     val_batches = get_batches(path + 'valid', shuffle=False, batch_size=1)

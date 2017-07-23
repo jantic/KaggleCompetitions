@@ -5,9 +5,6 @@ from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredi
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 from common.math.MathUtils import MathUtils
 
-from PIL.Image import Image
-
-
 class MasterImageClassifier:
     def __init__(self, model: IImageRecModel):
         self.__model = model
@@ -17,7 +14,7 @@ class MasterImageClassifier:
     # TODO:  Determine batch sizes automatically?  That would be nice!
     def getAllPredictions(self, testImagesPath: str, useImageSplitting: bool, batch_size: int) -> [PredictionsSummary]:
         sourceImageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
-        testImageInfos = self.__generateAllTestImages(sourceImageInfos, useImageSplitting)
+        testImageInfos = MasterImageClassifier.__generateAllTestImages(sourceImageInfos, useImageSplitting)
 
         predictionSummaries = []
         imagesPerTestId = int(round(len(testImageInfos) / len(sourceImageInfos), 0))
@@ -34,7 +31,8 @@ class MasterImageClassifier:
 
         return predictionSummaries
 
-    def __generateAllTestImages(self, fullImageInfos: [ImageInfo], useImageSplitting: bool):
+    @staticmethod
+    def __generateAllTestImages(fullImageInfos: [ImageInfo], useImageSplitting: bool):
         testImageInfos = []
 
         for fullImageInfo in fullImageInfos:
@@ -55,14 +53,15 @@ class MasterImageClassifier:
         finalPredictionSummaries = []
 
         for result in results:
-            fullImagePredictionSummary = self.__getFullImagePredictionSummary(result.getPredictionSummaries())
+            fullImagePredictionSummary = MasterImageClassifier.__getFullImagePredictionSummary(result.getPredictionSummaries())
             allPredictionSummaries = result.getPredictionSummaries()
-            finalPredictionSummary = self.__generateFinalPredictionSummary(fullImagePredictionSummary, allPredictionSummaries)
+            finalPredictionSummary = MasterImageClassifier.__generateFinalPredictionSummary(fullImagePredictionSummary, allPredictionSummaries)
             finalPredictionSummaries.append(finalPredictionSummary)
 
         return finalPredictionSummaries
 
-    def __getFullImagePredictionSummary(self, predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
+    @staticmethod
+    def __getFullImagePredictionSummary(predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
         summaryWithLargestImage = predictionSummaries[0]
 
         for predictionSummary in predictionSummaries:
@@ -75,28 +74,31 @@ class MasterImageClassifier:
 
         return summaryWithLargestImage
 
-    def __getAllPilImages(self, imageInfos: [ImageInfo]) -> [Image]:
-        pilImages = []
-
-        for imageInfo in imageInfos:
-            pilImages.append(imageInfo.getPilImage())
-
-        return pilImages
-
     # Generates "tie-breaker" out of subimage predictions if there isn't sufficient confidence on the top prediction
     # for the full image.
     # TODO: How exactly should that threshold be determined...?  For now, using one that works for two classes.  Definitely revisit
-    def __generateFinalPredictionSummary(self, fullImagePredictionSummary: PredictionsSummary, predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
-        if self.__meetsMinConfidenceThreshold(fullImagePredictionSummary):
+    @staticmethod
+    def __generateFinalPredictionSummary(fullImagePredictionSummary: PredictionsSummary, predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
+        if MasterImageClassifier.__meetsMinConfidenceThreshold(fullImagePredictionSummary):
             return fullImagePredictionSummary
 
         predictionSummaries.sort(reverse=True)
         return predictionSummaries[0]
 
-    def __meetsMinConfidenceThreshold(self, predictionSummary: PredictionsSummary):
+    @staticmethod
+    def __meetsMinConfidenceThreshold(predictionSummary: PredictionsSummary):
         topPredictionConfidence = predictionSummary.getTopPrediction().getConfidence()
         predictions = predictionSummary.getAllPredictions()
         predictions.sort(reverse=True)
         nextPredictionConfidence = predictions[1].getConfidence()
+
+        if nextPredictionConfidence == 0.0:
+            return False
+
         confidenceThreshold = 3.0  # arbitrary, magic, I know
-        return topPredictionConfidence / nextPredictionConfidence > confidenceThreshold
+
+        try:
+            return topPredictionConfidence / nextPredictionConfidence > confidenceThreshold
+        # overflow warning- means the ratio is really large.
+        except RuntimeWarning:
+            return True
