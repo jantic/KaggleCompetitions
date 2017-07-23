@@ -14,6 +14,7 @@ from keras.preprocessing import image
 from keras.utils.data_utils import get_file
 from keras.models import load_model
 import keras
+import tensorflow as tf
 
 from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import BatchImagePredictionRequestInfo
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
@@ -101,7 +102,7 @@ class Vgg16(IImageRecModel):
 
     def __vgg_preprocess(self, x):
         x = x - self.VGG_MEAN
-        return x[:, :, :, ::-1]  # reverse axis rgb->bgr
+        return x[:, ::-1]  # reverse axis rgb->bgr
 
 
     def __create(self):
