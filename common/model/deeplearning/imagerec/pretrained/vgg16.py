@@ -6,7 +6,7 @@ import numpy as np
 import os.path
 import glob
 import re
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
+from keras.layers.convolutional import MaxPooling2D, ZeroPadding2D, Conv2D
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.models import Sequential
 from keras.optimizers import Adam
@@ -25,10 +25,11 @@ class Vgg16(IImageRecModel):
     """The VGG 16 Imagenet model"""
 
     def __init__(self, loadWeightsFromCache: bool, trainingImagesPath: str, training_batch_size: int, validationImagesPath: str, validation_batch_size: int):
+        self.TRAINING_BATCH_SIZE = training_batch_size
         self.TRAINING_BATCHES = self.__getBatches(trainingImagesPath, batch_size=training_batch_size)
         self.VALIDATION_BATCHES = self.__getBatches(validationImagesPath, batch_size=validation_batch_size)
         self.VGG_MEAN = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3, 1, 1))
-        self.ORIGINAL_MODEL_WEIGHTS_URL = 'http://www.platform.ai/models/'
+        self.ORIGINAL_MODEL_WEIGHTS_URL = 'http://files.fast.ai/models/'
         self.LOAD_WEIGHTS_FROM_CACHE = loadWeightsFromCache
         self.LATEST_SAVED_WEIGHTS_FILENAME = self.__getLatestSavedWeightsFileName()
         self.LATEST_SAVED_EPOCH = self.__determineEpochNumFromWeighFileName(self.LATEST_SAVED_WEIGHTS_FILENAME)
@@ -58,7 +59,7 @@ class Vgg16(IImageRecModel):
             os.mkdir(directory)
 
         fileNames = glob.glob(directory + "*.h5")
-        highestEpoch = -1
+        highestEpoch = 0
         highestEpochFile = ""
 
         for fileName in fileNames:
@@ -71,10 +72,10 @@ class Vgg16(IImageRecModel):
 
     @staticmethod
     def __determineEpochNumFromWeighFileName(fileName):
-        matchObj = re.match(r'(.*?weights\.)(\d+)(-)(.*?)(\.h5)', fileName, re.M | re.I)
+        matchObj = re.match(r'(.*?weights\.)(\d+)(-)(.*?)(-)(.*?)(\.h5)', fileName, re.M | re.I)
         if matchObj:
-            return int(matchObj.group(2))
-        return -1
+            return int(matchObj.group(2)) + 1
+        return 0
 
     def __get_classes(self):
         fname = 'imagenet_class_index.json'
@@ -87,7 +88,7 @@ class Vgg16(IImageRecModel):
         model = self.model
         for i in range(layers):
             model.add(ZeroPadding2D((1, 1)))
-            model.add(Convolution2D(filters, 3, 3, activation='relu'))
+            model.add(Conv2D(filters, kernel_size=(3, 3), activation='relu'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
     def __FCBlock(self):
@@ -95,12 +96,16 @@ class Vgg16(IImageRecModel):
         model.add(Dense(4096, activation='relu'))
         model.add(Dropout(0.5))
 
+    def __swap_cols(self, arr, frm, to):
+        arr[[frm, to], :] = arr[[to, frm], :]
+
     def __vgg_preprocess(self, x):
         x = x - self.VGG_MEAN
-        return x[:, ::-1]  # reverse axis rgb->bgr
+        return x[:, :, :, ::-1]  # reverse axis rgb->bgr
+
 
     def __create(self):
-        if self.LOAD_WEIGHTS_FROM_CACHE and self.LATEST_SAVED_EPOCH > -1:
+        if self.LOAD_WEIGHTS_FROM_CACHE and self.LATEST_SAVED_EPOCH > 0:
             self.model = load_model(self.LATEST_SAVED_WEIGHTS_FILENAME, custom_objects={'__vgg_preprocess': self.__vgg_preprocess})
             self.model.load_weights(self.LATEST_SAVED_WEIGHTS_FILENAME, True)
         else:
@@ -117,7 +122,7 @@ class Vgg16(IImageRecModel):
             self.__FCBlock()
             self.__FCBlock()
             self.model.add(Dense(1000, activation='softmax'))
-            self.model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL, cache_subdir='models'))
+            self.model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16.h5', cache_subdir='models'))
             self.__finetune(self.TRAINING_BATCHES)
 
     def __getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
@@ -133,7 +138,7 @@ class Vgg16(IImageRecModel):
         self.__compile()
 
     def __finetune(self, batches):
-        self.__ft(batches.nb_class)
+        self.__ft(batches.num_class)
         classes = list(iter(batches.class_indices))
         for c in batches.class_indices:
             classes[batches.class_indices[c]] = c
@@ -143,17 +148,18 @@ class Vgg16(IImageRecModel):
         optimizer = Adam(lr=0.001)
         self.model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-    def __fitData(self, trn, labels, val, val_labels, nb_epoch=1, batch_size=64):
-        self.model.fit(trn, labels, nb_epoch=nb_epoch,
+    def __fit_data(self, trn, labels, val, val_labels, nb_epoch=1, batch_size=64):
+        self.model.fit(trn, labels, epochs=nb_epoch,
                        validation_data=(val, val_labels), batch_size=batch_size)
 
     def __fit(self, batches, val_batches, nb_epoch=1, initial_epoch=0):
+        #tensorBoard = keras.callbacks.TensorBoard(log_dir='./tblogs', histogram_freq=1, write_graph=True, write_images=True)
         earlyStopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, verbose=1, mode='auto')
         modelCheckpoint = keras.callbacks.ModelCheckpoint('./cache/weights.{epoch:02d}-{val_loss:.4f}-{val_acc:.4f}.h5', monitor='val_loss', verbose=0, save_best_only=False,
                                                           save_weights_only=False, mode='auto', period=1)
-        self.model.fit_generator(batches, samples_per_epoch=batches.nb_sample, nb_epoch=nb_epoch, initial_epoch=initial_epoch,
-                                 callbacks=[earlyStopping, modelCheckpoint], validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
+        self.model.fit_generator(batches, steps_per_epoch=int(np.ceil(batches.samples/self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
+                validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples/self.TRAINING_BATCH_SIZE)), callbacks=[earlyStopping, modelCheckpoint])
 
     def __test(self, path, batch_size=8):
-        test_batches = self.__getBatches(path, shuffle=False, batch_size=batch_size, class_mode=None)
-        return test_batches, self.model.predict_generator(test_batches, test_batches.nb_sample)
+        test_batches = self.get_batches(path, shuffle=False, batch_size=batch_size, class_mode=None)
+        return test_batches, self.model.predict_generator(test_batches, int(np.ceil(test_batches.samples/batch_size)))

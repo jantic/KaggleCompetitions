@@ -3,7 +3,7 @@ from __future__ import division, print_function
 import json
 
 import numpy as np
-from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
+from keras.layers.convolutional import Conv2D, MaxPooling2D, ZeroPadding2D
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.layers.normalization import BatchNormalization
 from keras.models import Sequential
@@ -46,7 +46,7 @@ class Vgg16BN:
         model = self.model
         for i in range(layers):
             model.add(ZeroPadding2D((1, 1)))
-            model.add(Convolution2D(filters, 3, 3, activation='relu'))
+            model.add(Conv2D(filters, (3, 3), activation='relu'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
     def FCBlock(self):
