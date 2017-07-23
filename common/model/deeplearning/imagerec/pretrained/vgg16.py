@@ -14,7 +14,6 @@ from keras.preprocessing import image
 from keras.utils.data_utils import get_file
 from keras.models import load_model
 import keras
-import tensorflow as tf
 
 from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import BatchImagePredictionRequestInfo
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
@@ -104,7 +103,6 @@ class Vgg16(IImageRecModel):
         x = x - self.VGG_MEAN
         return x[:, ::-1]  # reverse axis rgb->bgr
 
-
     def __create(self):
         if self.LOAD_WEIGHTS_FROM_CACHE and self.LATEST_SAVED_EPOCH > 0:
             self.model = load_model(self.LATEST_SAVED_WEIGHTS_FILENAME, custom_objects={'__vgg_preprocess': self.__vgg_preprocess})
@@ -127,7 +125,7 @@ class Vgg16(IImageRecModel):
             self.__finetune(self.TRAINING_BATCHES)
 
     def __getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
-        return gen.flow_from_directory(path, target_size=(self.getImageWidth(), self.getImageHeight()),
+        return gen.flow_from_directory(path, target_size=(self.getImageWidth(), self.getImageHeight()), color_mode='rgb',
                                        class_mode=class_mode, shuffle=shuffle, batch_size=batch_size)
 
     def __ft(self, num):
@@ -162,5 +160,5 @@ class Vgg16(IImageRecModel):
                 validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples/self.TRAINING_BATCH_SIZE)), callbacks=[earlyStopping, modelCheckpoint])
 
     def __test(self, path, batch_size=8):
-        test_batches = self.get_batches(path, shuffle=False, batch_size=batch_size, class_mode=None)
+        test_batches = self.__getBatches(path, shuffle=False, batch_size=batch_size, class_mode=None)
         return test_batches, self.model.predict_generator(test_batches, int(np.ceil(test_batches.samples/batch_size)))
