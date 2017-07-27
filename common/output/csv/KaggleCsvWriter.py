@@ -1,9 +1,11 @@
 import pandas as pd
 
+from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
+
 
 class KaggleCsvWriter:
     @staticmethod
-    def writePredictionsForClassIdToCsv(predictionsSummaries: [], classId):
+    def writePredictionsForClassIdToCsv(predictionsSummaries: [PredictionsSummary], classId):
         if len(predictionsSummaries) == 0:
             return
 

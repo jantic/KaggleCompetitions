@@ -4,6 +4,8 @@ from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
 from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 from common.math.MathUtils import MathUtils
+from common.model.deeplearning.test.TestResultSummary import TestResultSummary
+
 
 class MasterImageClassifier:
     def __init__(self, model: IImageRecModel):
@@ -12,6 +14,17 @@ class MasterImageClassifier:
     # Takes source image info, creates different versions of the same image,
     # and returns the prediction with the most confidence
     # TODO:  Determine batch sizes automatically?  That would be nice!
+
+    def getAllTestResults(self, testImagesPath: str, useImageSplitting: bool, batch_size: int, className: str) -> [TestResultSummary]:
+        predictionSummaries = self.getAllPredictions(testImagesPath, useImageSplitting, batch_size)
+        testResultSummaries = []
+
+        for predictionSummary in predictionSummaries:
+            testResultSummary = TestResultSummary(predictionSummary, className)
+            testResultSummaries.append(testResultSummary)
+
+        return testResultSummaries
+
     def getAllPredictions(self, testImagesPath: str, useImageSplitting: bool, batch_size: int) -> [PredictionsSummary]:
         sourceImageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
         testImageInfos = MasterImageClassifier.__generateAllTestImages(sourceImageInfos, useImageSplitting)
@@ -79,26 +92,7 @@ class MasterImageClassifier:
     # TODO: How exactly should that threshold be determined...?  For now, using one that works for two classes.  Definitely revisit
     @staticmethod
     def __generateFinalPredictionSummary(fullImagePredictionSummary: PredictionsSummary, predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
-        if MasterImageClassifier.__meetsMinConfidenceThreshold(fullImagePredictionSummary):
-            return fullImagePredictionSummary
-
         predictionSummaries.sort(reverse=True)
         return predictionSummaries[0]
 
-    @staticmethod
-    def __meetsMinConfidenceThreshold(predictionSummary: PredictionsSummary):
-        topPredictionConfidence = predictionSummary.getTopPrediction().getConfidence()
-        predictions = predictionSummary.getAllPredictions()
-        predictions.sort(reverse=True)
-        nextPredictionConfidence = predictions[1].getConfidence()
 
-        if nextPredictionConfidence == 0.0:
-            return False
-
-        confidenceThreshold = 3.0  # arbitrary, magic, I know
-
-        try:
-            return topPredictionConfidence / nextPredictionConfidence > confidenceThreshold
-        # overflow warning- means the ratio is really large.
-        except RuntimeWarning:
-            return True

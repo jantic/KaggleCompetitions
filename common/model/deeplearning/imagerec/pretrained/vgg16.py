@@ -78,11 +78,20 @@ class Vgg16(IImageRecModel):
         return 0
 
     def __get_classes(self):
-        fname = 'imagenet_class_index.json'
-        fpath = get_file(fname, self.ORIGINAL_MODEL_WEIGHTS_URL + fname, cache_subdir='models')
-        with open(fpath) as f:
-            class_dict = json.load(f)
-        self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
+        #fname = 'imagenet_class_index.json'
+        #fpath = get_file(fname, self.ORIGINAL_MODEL_WEIGHTS_URL + fname, cache_subdir='models')
+        #with open(fpath) as f:
+        #    class_dict = json.load(f)
+        #self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
+
+        classes = list(iter(self.TRAINING_BATCHES.class_indices))
+        for c in self.TRAINING_BATCHES.class_indices:
+            classes[self.TRAINING_BATCHES.class_indices[c]] = c
+        self.classes = classes
+
+
+
+
 
     def __ConvBlock(self, layers, filters):
         model = self.model
@@ -103,8 +112,10 @@ class Vgg16(IImageRecModel):
         x = x - self.VGG_MEAN
         return x[:, ::-1]  # reverse axis rgb->bgr
 
+    def __canLoadWeightsFromCache(self):
+        return self.LOAD_WEIGHTS_FROM_CACHE and self.LATEST_SAVED_EPOCH > 0
     def __create(self):
-        if self.LOAD_WEIGHTS_FROM_CACHE and self.LATEST_SAVED_EPOCH > 0:
+        if self.__canLoadWeightsFromCache():
             self.model = load_model(self.LATEST_SAVED_WEIGHTS_FILENAME, custom_objects={'__vgg_preprocess': self.__vgg_preprocess})
             self.model.load_weights(self.LATEST_SAVED_WEIGHTS_FILENAME, True)
         else:
@@ -122,26 +133,21 @@ class Vgg16(IImageRecModel):
             self.__FCBlock()
             self.model.add(Dense(1000, activation='softmax'))
             self.model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16.h5', cache_subdir='models'))
-            self.__finetune(self.TRAINING_BATCHES)
+            self.__finetune()
 
     def __getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
         return gen.flow_from_directory(path, target_size=(self.getImageWidth(), self.getImageHeight()), color_mode='rgb',
                                        class_mode=class_mode, shuffle=shuffle, batch_size=batch_size)
 
-    def __ft(self, num):
+    def __finetune(self):
+        numClasses = self.TRAINING_BATCHES.num_class
         model = self.model
         model.pop()
         for layer in model.layers:
             layer.trainable = False
-        model.add(Dense(num, activation='softmax'))
+        model.add(Dense(numClasses, activation='softmax'))
         self.__compile()
 
-    def __finetune(self, batches):
-        self.__ft(batches.num_class)
-        classes = list(iter(batches.class_indices))
-        for c in batches.class_indices:
-            classes[batches.class_indices[c]] = c
-        self.classes = classes
 
     def __compile(self):
         optimizer = Adam(lr=0.001)

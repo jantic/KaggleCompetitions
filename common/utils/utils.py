@@ -6,7 +6,7 @@ import math
 import bcolz
 from common.model.deeplearning.imagerec.pretrained.vgg16bn import *
 from keras.layers.convolutional import *
-#from keras.utils.layer_utils import layer_from_config
+# from keras.utils.layer_utils import layer_from_config
 from keras.utils.np_utils import to_categorical
 from matplotlib import pyplot as plt
 
@@ -44,6 +44,7 @@ def ceil(x):
 
 
 def plots(ims, figsize=(12, 6), rows=1, interp=False, titles=None):
+    plt.interactive(False)
     if type(ims[0]) is np.ndarray:
         ims = np.array(ims).astype(np.uint8)
         if ims.shape[-1] != 3:
@@ -55,6 +56,8 @@ def plots(ims, figsize=(12, 6), rows=1, interp=False, titles=None):
         if titles is not None:
             sp.set_title(titles[i], fontsize=16)
         plt.imshow(ims[i], interpolation=None if interp else 'none')
+
+    plt.show()
 
 
 def do_clip(arr, mx):
@@ -76,10 +79,10 @@ def wrap_config(layer):
     return {'class_name': layer.__class__.__name__, 'config': layer.get_config()}
 
 
-#def copy_layer(layer): return layer_from_config(wrap_config(layer))
+# def copy_layer(layer): return layer_from_config(wrap_config(layer))
 
 
-#def copy_layers(layers): return [copy_layer(layer) for layer in layers]
+# def copy_layers(layers): return [copy_layer(layer) for layer in layers]
 
 
 def copy_weights(from_layers, to_layers):
@@ -87,13 +90,13 @@ def copy_weights(from_layers, to_layers):
         to_layer.set_weights(from_layer.get_weights())
 
 
-#def copy_model(m):
- #   res = Sequential(copy_layers(m.layers))
- #   copy_weights(m.layers, res.layers)
- #   return res
+    # def copy_model(m):
+    #   res = Sequential(copy_layers(m.layers))
+    #   copy_weights(m.layers, res.layers)
+    #   return res
 
 
-#def insert_layer(model, new_layer, index):
+# def insert_layer(model, new_layer, index):
 #    res = Sequential()
 #    for i, layer in enumerate(model.layers):
 #        if i == index: res.add(new_layer)
