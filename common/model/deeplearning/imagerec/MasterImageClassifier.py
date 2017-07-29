@@ -66,9 +66,8 @@ class MasterImageClassifier:
         finalPredictionSummaries = []
 
         for result in results:
-            fullImagePredictionSummary = MasterImageClassifier.__getFullImagePredictionSummary(result.getPredictionSummaries())
             allPredictionSummaries = result.getPredictionSummaries()
-            finalPredictionSummary = MasterImageClassifier.__generateFinalPredictionSummary(fullImagePredictionSummary, allPredictionSummaries)
+            finalPredictionSummary = MasterImageClassifier.__generateFinalPredictionSummary(allPredictionSummaries)
             finalPredictionSummaries.append(finalPredictionSummary)
 
         return finalPredictionSummaries
@@ -91,7 +90,7 @@ class MasterImageClassifier:
     # for the full image.
     # TODO: How exactly should that threshold be determined...?  For now, using one that works for two classes.  Definitely revisit
     @staticmethod
-    def __generateFinalPredictionSummary(fullImagePredictionSummary: PredictionsSummary, predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
+    def __generateFinalPredictionSummary(predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
         predictionSummaries.sort(reverse=True)
         return predictionSummaries[0]
 

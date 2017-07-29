@@ -90,10 +90,10 @@ def copy_weights(from_layers, to_layers):
         to_layer.set_weights(from_layer.get_weights())
 
 
-    # def copy_model(m):
-    #   res = Sequential(copy_layers(m.layers))
-    #   copy_weights(m.layers, res.layers)
-    #   return res
+        # def copy_model(m):
+        #   res = Sequential(copy_layers(m.layers))
+        #   copy_weights(m.layers, res.layers)
+        #   return res
 
 
 # def insert_layer(model, new_layer, index):

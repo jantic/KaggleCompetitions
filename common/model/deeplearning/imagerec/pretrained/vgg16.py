@@ -78,20 +78,16 @@ class Vgg16(IImageRecModel):
         return 0
 
     def __get_classes(self):
-        #fname = 'imagenet_class_index.json'
-        #fpath = get_file(fname, self.ORIGINAL_MODEL_WEIGHTS_URL + fname, cache_subdir='models')
-        #with open(fpath) as f:
+        # fname = 'imagenet_class_index.json'
+        # fpath = get_file(fname, self.ORIGINAL_MODEL_WEIGHTS_URL + fname, cache_subdir='models')
+        # with open(fpath) as f:
         #    class_dict = json.load(f)
-        #self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
+        # self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
 
         classes = list(iter(self.TRAINING_BATCHES.class_indices))
         for c in self.TRAINING_BATCHES.class_indices:
             classes[self.TRAINING_BATCHES.class_indices[c]] = c
         self.classes = classes
-
-
-
-
 
     def __ConvBlock(self, layers, filters):
         model = self.model
@@ -105,15 +101,13 @@ class Vgg16(IImageRecModel):
         model.add(Dense(4096, activation='relu'))
         model.add(Dropout(0.5))
 
-    def __swap_cols(self, arr, frm, to):
-        arr[[frm, to], :] = arr[[to, frm], :]
-
     def __vgg_preprocess(self, x):
         x = x - self.VGG_MEAN
         return x[:, ::-1]  # reverse axis rgb->bgr
 
     def __canLoadWeightsFromCache(self):
         return self.LOAD_WEIGHTS_FROM_CACHE and self.LATEST_SAVED_EPOCH > 0
+
     def __create(self):
         if self.__canLoadWeightsFromCache():
             self.model = load_model(self.LATEST_SAVED_WEIGHTS_FILENAME, custom_objects={'__vgg_preprocess': self.__vgg_preprocess})
@@ -148,7 +142,6 @@ class Vgg16(IImageRecModel):
         model.add(Dense(numClasses, activation='softmax'))
         self.__compile()
 
-
     def __compile(self):
         optimizer = Adam(lr=0.001)
         self.model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
@@ -158,13 +151,14 @@ class Vgg16(IImageRecModel):
                        validation_data=(val, val_labels), batch_size=batch_size)
 
     def __fit(self, batches, val_batches, nb_epoch=1, initial_epoch=0):
-        #tensorBoard = keras.callbacks.TensorBoard(log_dir='./tblogs', histogram_freq=1, write_graph=True, write_images=True)
+        # tensorBoard = keras.callbacks.TensorBoard(log_dir='./tblogs', histogram_freq=1, write_graph=True, write_images=True)
         earlyStopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, verbose=1, mode='auto')
         modelCheckpoint = keras.callbacks.ModelCheckpoint('./cache/weights.{epoch:02d}-{val_loss:.4f}-{val_acc:.4f}.h5', monitor='val_loss', verbose=0, save_best_only=False,
                                                           save_weights_only=False, mode='auto', period=1)
-        self.model.fit_generator(batches, steps_per_epoch=int(np.ceil(batches.samples/self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
-                validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples/self.TRAINING_BATCH_SIZE)), callbacks=[earlyStopping, modelCheckpoint])
+        self.model.fit_generator(batches, steps_per_epoch=int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
+                                 validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples / self.TRAINING_BATCH_SIZE)),
+                                 callbacks=[earlyStopping, modelCheckpoint])
 
     def __test(self, path, batch_size=8):
         test_batches = self.__getBatches(path, shuffle=False, batch_size=batch_size, class_mode=None)
-        return test_batches, self.model.predict_generator(test_batches, int(np.ceil(test_batches.samples/batch_size)))
+        return test_batches, self.model.predict_generator(test_batches, int(np.ceil(test_batches.samples / batch_size)))

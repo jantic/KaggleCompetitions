@@ -1,6 +1,5 @@
 from common.model.deeplearning.test.TestResultSummary import TestResultSummary
 import numpy as np
-from numpy.random import permutation
 from matplotlib import pyplot as plt
 
 
@@ -25,7 +24,7 @@ class ImagePerformanceVisualizer:
             return
 
         correct = [testResultSummary for testResultSummary in testResultSummaries if (testResultSummary.isCorrect() and
-                        testResultSummary.getActualClassName() == className)]
+                                                                                      testResultSummary.getActualClassName() == className)]
 
         sortedCorrect = sorted(correct, key=ImagePerformanceVisualizer.__confidenceSortKey, reverse=True)
 
@@ -38,7 +37,7 @@ class ImagePerformanceVisualizer:
             return
 
         failing = [testResultSummary for testResultSummary in testResultSummaries if (not testResultSummary.isCorrect() and
-                        testResultSummary.getActualClassName() == className)]
+                                                                                      testResultSummary.getActualClassName() == className)]
 
         sortedFailing = sorted(failing, key=ImagePerformanceVisualizer.__confidenceSortKey, reverse=True)
 
