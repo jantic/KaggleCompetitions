@@ -1,24 +1,25 @@
-from __future__ import division, print_function
 from __future__ import absolute_import
+from __future__ import division, print_function
 
-import json
-import numpy as np
-import os.path
 import glob
+import os.path
 import re
+
+import keras
+import numpy as np
 from keras.layers.convolutional import MaxPooling2D, ZeroPadding2D, Conv2D
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.models import Sequential
+from keras.models import load_model
 from keras.optimizers import Adam
 from keras.preprocessing import image
+from keras.preprocessing.image import DirectoryIterator
 from keras.utils.data_utils import get_file
-from keras.models import load_model
-import keras
 
 from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import BatchImagePredictionRequestInfo
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
-from common.model.deeplearning.imagerec.ImagePredictionResult import ImagePredictionResult
 from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
+from common.model.deeplearning.imagerec.ImagePredictionResult import ImagePredictionResult
 
 
 class Vgg16(IImageRecModel):
@@ -34,7 +35,7 @@ class Vgg16(IImageRecModel):
         self.LATEST_SAVED_WEIGHTS_FILENAME = self.__getLatestSavedWeightsFileName()
         self.LATEST_SAVED_EPOCH = self.__determineEpochNumFromWeighFileName(self.LATEST_SAVED_WEIGHTS_FILENAME)
         self.__create()
-        self.__get_classes()
+        self.__establishClasses()
 
     def refineTraining(self, numEpochs: int):
         initialEpoch = max(self.LATEST_SAVED_EPOCH, 0) if self.LOAD_WEIGHTS_FROM_CACHE else 0
@@ -52,6 +53,33 @@ class Vgg16(IImageRecModel):
 
     def getImageHeight(self):
         return 224
+
+    def getClasses(self)->list:
+        return self.classes
+
+    def __establishClasses(self):
+        classes = list(iter(self.TRAINING_BATCHES.class_indices))
+        for c in self.TRAINING_BATCHES.class_indices:
+            classes[self.TRAINING_BATCHES.class_indices[c]] = c
+        self.classes = classes
+
+    def __generateFreshKerasModel(self) -> Sequential:
+        model = Sequential()
+        model.add(Lambda(self.__vgg_preprocess, input_shape=(3, self.getImageWidth(), self.getImageHeight()),
+                         output_shape=(3, self.getImageWidth(), self.getImageHeight())))
+        Vgg16.__ConvBlock(model, 2, 64)
+        Vgg16.__ConvBlock(model, 2, 128)
+        Vgg16.__ConvBlock(model, 3, 256)
+        Vgg16.__ConvBlock(model, 3, 512)
+        Vgg16.__ConvBlock(model, 3, 512)
+
+        model.add(Flatten())
+        Vgg16.__FCBlock(model)
+        Vgg16.__FCBlock(model)
+        model.add(Dense(1000, activation='softmax'))
+        model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16.h5', cache_subdir='models'))
+        self.__finetune(model)
+        return model
 
     def __getLatestSavedWeightsFileName(self):
         directory = "./cache/"
@@ -77,27 +105,15 @@ class Vgg16(IImageRecModel):
             return int(matchObj.group(2)) + 1
         return 0
 
-    def __get_classes(self):
-        # fname = 'imagenet_class_index.json'
-        # fpath = get_file(fname, self.ORIGINAL_MODEL_WEIGHTS_URL + fname, cache_subdir='models')
-        # with open(fpath) as f:
-        #    class_dict = json.load(f)
-        # self.classes = [class_dict[str(i)][1] for i in range(len(class_dict))]
-
-        classes = list(iter(self.TRAINING_BATCHES.class_indices))
-        for c in self.TRAINING_BATCHES.class_indices:
-            classes[self.TRAINING_BATCHES.class_indices[c]] = c
-        self.classes = classes
-
-    def __ConvBlock(self, layers, filters):
-        model = self.model
+    @staticmethod
+    def __ConvBlock(model: Sequential, layers, filters):
         for i in range(layers):
             model.add(ZeroPadding2D((1, 1)))
             model.add(Conv2D(filters, kernel_size=(3, 3), activation='relu'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
-    def __FCBlock(self):
-        model = self.model
+    @staticmethod
+    def __FCBlock(model: Sequential):
         model.add(Dense(4096, activation='relu'))
         model.add(Dropout(0.5))
 
@@ -113,42 +129,24 @@ class Vgg16(IImageRecModel):
             self.model = load_model(self.LATEST_SAVED_WEIGHTS_FILENAME, custom_objects={'__vgg_preprocess': self.__vgg_preprocess})
             self.model.load_weights(self.LATEST_SAVED_WEIGHTS_FILENAME, True)
         else:
-            self.model = Sequential()
-            self.model.add(Lambda(self.__vgg_preprocess, input_shape=(3, self.getImageWidth(), self.getImageHeight()),
-                                  output_shape=(3, self.getImageWidth(), self.getImageHeight())))
-            self.__ConvBlock(2, 64)
-            self.__ConvBlock(2, 128)
-            self.__ConvBlock(3, 256)
-            self.__ConvBlock(3, 512)
-            self.__ConvBlock(3, 512)
+            self.model = self.__generateFreshKerasModel()
 
-            self.model.add(Flatten())
-            self.__FCBlock()
-            self.__FCBlock()
-            self.model.add(Dense(1000, activation='softmax'))
-            self.model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16.h5', cache_subdir='models'))
-            self.__finetune()
-
-    def __getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'):
+    def __getBatches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical') -> DirectoryIterator:
         return gen.flow_from_directory(path, target_size=(self.getImageWidth(), self.getImageHeight()), color_mode='rgb',
                                        class_mode=class_mode, shuffle=shuffle, batch_size=batch_size)
 
-    def __finetune(self):
+    def __finetune(self, model: Sequential):
         numClasses = self.TRAINING_BATCHES.num_class
-        model = self.model
         model.pop()
         for layer in model.layers:
             layer.trainable = False
         model.add(Dense(numClasses, activation='softmax'))
-        self.__compile()
+        Vgg16.__compile(model)
 
-    def __compile(self):
+    @staticmethod
+    def __compile(model: Sequential):
         optimizer = Adam(lr=0.001)
-        self.model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
-
-    def __fit_data(self, trn, labels, val, val_labels, nb_epoch=1, batch_size=64):
-        self.model.fit(trn, labels, epochs=nb_epoch,
-                       validation_data=(val, val_labels), batch_size=batch_size)
+        model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
     def __fit(self, batches, val_batches, nb_epoch=1, initial_epoch=0):
         # tensorBoard = keras.callbacks.TensorBoard(log_dir='./tblogs', histogram_freq=1, write_graph=True, write_images=True)
@@ -160,5 +158,6 @@ class Vgg16(IImageRecModel):
                                  callbacks=[earlyStopping, modelCheckpoint])
 
     def __test(self, path, batch_size=8):
+        # noinspection PyTypeChecker
         test_batches = self.__getBatches(path, shuffle=False, batch_size=batch_size, class_mode=None)
         return test_batches, self.model.predict_generator(test_batches, int(np.ceil(test_batches.samples / batch_size)))

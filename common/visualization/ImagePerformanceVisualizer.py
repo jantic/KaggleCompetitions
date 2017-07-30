@@ -1,12 +1,17 @@
 from common.model.deeplearning.test.TestResultSummary import TestResultSummary
 import numpy as np
+import itertools
 from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
 
+
+# TODO:  Add visualizations for random correct and random incorrect
+# TODO:  Add confusion matrix visualizations
 
 class ImagePerformanceVisualizer:
     @staticmethod
     def doVisualizations(testResultSummaries: [TestResultSummary], className: str, numTestsToVisualize: int, visualizeSuccess: bool,
-                         visualizeFailure: bool, visualizeLeastConfident: bool):
+                         visualizeFailure: bool, visualizeLeastConfident: bool, visualizeConfusionMatrix: bool):
         if visualizeSuccess:
             ImagePerformanceVisualizer.__visualizeMostConfidentSuccessfulPredictions(testResultSummaries, className, numTestsToVisualize)
 
@@ -15,6 +20,9 @@ class ImagePerformanceVisualizer:
 
         if visualizeLeastConfident:
             ImagePerformanceVisualizer.__visualizeLeastConfidentPredictions(testResultSummaries, className, numTestsToVisualize)
+
+        if visualizeConfusionMatrix:
+            ImagePerformanceVisualizer.__visualizeConfusionMatrix(testResultSummaries)
 
         plt.show()
 
@@ -54,6 +62,50 @@ class ImagePerformanceVisualizer:
         sortedResults = sorted(testResultsOfClass, key=ImagePerformanceVisualizer.__confidenceSortKey, reverse=False)
         toDisplay = sortedResults[:numTestsToVisualize]
         ImagePerformanceVisualizer.__prepareVisualizations(toDisplay, 'Least Confident Predictions')
+
+    @staticmethod
+    def __visualizeConfusionMatrix(testResultSummaries: [TestResultSummary]):
+        if len(testResultSummaries) == 0:
+            return
+
+        actualClasses = []
+        predictedClasses = []
+        classesSet = set()
+
+        for testResultSummary in testResultSummaries:
+            actualClasses.append(testResultSummary.getActualClassName())
+            predictedClasses.append(testResultSummary.getPredictionSummary().getTopPrediction().getClassName())
+            classesSet.add(testResultSummary.getActualClassName())
+
+        sortedClasses = sorted(classesSet)
+        confusionMatrix = confusion_matrix(actualClasses, predictedClasses)
+        ImagePerformanceVisualizer.__prepareConfusionMatrix(confusionMatrix, sortedClasses)
+
+    @staticmethod
+    def __prepareConfusionMatrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.get_cmap(name="Blues")):
+        """
+        This function prints and plots the confusion matrix.
+        Normalization can be applied by setting `normalize=True`.
+        (This function is copied from the scikit docs.)
+        """
+        plt.figure()
+        plt.imshow(cm, interpolation='nearest', cmap=cmap)
+        plt.title(title)
+        plt.colorbar()
+        tick_marks = np.arange(len(classes))
+        plt.xticks(tick_marks, classes, rotation=45)
+        plt.yticks(tick_marks, classes)
+
+        if normalize:
+            cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print(cm)
+        thresh = cm.max() / 2.
+        for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+            plt.text(j, i, cm[i, j], horizontalalignment="center", color="white" if cm[i, j] > thresh else "black")
+
+        plt.tight_layout()
+        plt.ylabel('True label')
+        plt.xlabel('Predicted label')
 
     @staticmethod
     def __prepareVisualizations(testResultSummaries: [TestResultSummary], summaryTitle: str):

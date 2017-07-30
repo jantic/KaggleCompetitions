@@ -7,7 +7,6 @@ from common.model.deeplearning.imagerec.pretrained.vgg16 import Vgg16
 from common.output.csv.KaggleCsvWriter import KaggleCsvWriter
 from common.visualization.ImagePerformanceVisualizer import ImagePerformanceVisualizer
 from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImageClassifier
-import cProfile
 import time
 
 reload(utils)
@@ -35,10 +34,10 @@ imageClassifer = MasterImageClassifier(vgg)
 # pr.enable()
 start = time.time()
 
-# predictionSummaries = imageClassifer.getAllPredictions(testSetPath, False, test_batch_size)
-# KaggleCsvWriter.writePredictionsForClassIdToCsv(predictionSummaries, 1)
+predictionSummaries = imageClassifer.getAllPredictions(testSetPath, False, test_batch_size)
+KaggleCsvWriter.writePredictionsForClassIdToCsv(predictionSummaries, 1)
 testResultSummaries = imageClassifer.getAllTestResults(visTestPath, False, test_batch_size, visTestClass)
-ImagePerformanceVisualizer.doVisualizations(testResultSummaries, visTestClass, 5, True, True, True)
+ImagePerformanceVisualizer.doVisualizations(testResultSummaries, visTestClass, 5, True, True, True, True)
 
 end = time.time()
 print(end - start)

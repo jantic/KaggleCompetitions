@@ -56,6 +56,8 @@ class MasterImageClassifier:
                 testImageInfos.extend(ImageSplitter.getImageDividedIntoCrossQuadrants(fullImageInfo))
                 testImageInfos.extend(ImageSplitter.getImageDividedIntoHorizontalHalves(fullImageInfo))
                 testImageInfos.extend(ImageSplitter.getImageDividedIntoVerticalHalves(fullImageInfo))
+                testImageInfos.extend(ImageSplitter.getImageDividedIntoSquareThreeQuartersCorners(fullImageInfo))
+                testImageInfos.extend(ImageSplitter.getImageDividedIntoThreeQuartersCross(fullImageInfo))
                 testImageInfos.extend(ImageSplitter.getImageHalfCenter(fullImageInfo))
 
         return testImageInfos

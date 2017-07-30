@@ -4,7 +4,6 @@ import itertools
 import math
 
 import bcolz
-from common.model.deeplearning.imagerec.pretrained.vgg16bn import *
 from keras.layers.convolutional import *
 # from keras.utils.layer_utils import layer_from_config
 from keras.utils.np_utils import to_categorical
@@ -90,10 +89,10 @@ def copy_weights(from_layers, to_layers):
         to_layer.set_weights(from_layer.get_weights())
 
 
-        # def copy_model(m):
-        #   res = Sequential(copy_layers(m.layers))
-        #   copy_weights(m.layers, res.layers)
-        #   return res
+# def copy_model(m):
+#   res = Sequential(copy_layers(m.layers))
+#   copy_weights(m.layers, res.layers)
+#   return res
 
 
 # def insert_layer(model, new_layer, index):
@@ -112,11 +111,12 @@ def adjust_dropout(weights, prev_p, new_p):
 
 
 def get_data(path, target_size=(224, 224)):
+    # noinspection PyTypeChecker
     batches = get_batches(path, shuffle=False, batch_size=1, class_mode=None, target_size=target_size)
     return np.concatenate([batches.next() for i in range(batches.nb_sample)])
 
 
-def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.Blues):
+def plot_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.get_cmap(name='Blues')):
     """
     This function prints and plots the confusion matrix.
     Normalization can be applied by setting `normalize=True`.
@@ -201,7 +201,8 @@ class MixIterator(object):
             self.N = sum([it.N for it in self.iters])
 
     def reset(self):
-        for it in self.iters: it.reset()
+        for it in self.iters:
+            it.reset()
 
     def __iter__(self):
         return self

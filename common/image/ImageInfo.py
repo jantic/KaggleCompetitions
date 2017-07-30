@@ -24,13 +24,13 @@ class ImageInfo:
     @staticmethod
     def getInstanceForImagePath(imagePath: str):
         imageNumber = ImageInfo.__determineImageNumber(imagePath)
-        return ImageInfo.getInstance(imageNumber, imagePath, None)
+        return ImageInfo.getInstance(imageNumber, imagePath)
 
     @staticmethod
-    def getInstance(imageNumber: int, imagePath: str, cropBox: CropBox):
+    def getInstance(imageNumber: int, imagePath: str, cropBox: CropBox = None):
         return ImageInfo(imageNumber, imagePath, cropBox)
 
-    def __init__(self, imageNumber: int, imagePath: str, cropBox: CropBox):
+    def __init__(self, imageNumber: int, imagePath: str, cropBox: CropBox = None):
         self.__imageNumber = imageNumber
         self.__imagePath = imagePath
         self.__cropBox = cropBox

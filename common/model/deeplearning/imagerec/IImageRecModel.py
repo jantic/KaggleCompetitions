@@ -18,3 +18,7 @@ class IImageRecModel:
 
     @abstractmethod
     def refineTraining(self, numEpochs: int): raise NotImplementedError
+
+    @abstractmethod
+    def getClasses(self)->list: raise NotImplementedError
+
