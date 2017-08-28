@@ -6,54 +6,55 @@ from common.model.deeplearning.prediction.PredictionsSummary import PredictionsS
 
 class ImagePredictionResult:
     @staticmethod
-    def generateImagePredictionResults(batchConfidences: [float], batchRequestInfo: BatchImagePredictionRequestInfo, classes: {}):
-        testIdToPredictionSummaries = ImagePredictionResult.__generateTestIdToPredictionSummaries(batchConfidences,
-                                                                                                  batchRequestInfo.getTestIds(), batchRequestInfo.getImageInfos(), classes)
-        imagePredictionResults = []
+    def generate_image_prediction_results(batch_confidences: [float], batch_request_info: BatchImagePredictionRequestInfo, classes: {}):
+        test_id_to_prediction_summaries = ImagePredictionResult.__generate_test_id_to_prediction_summaries(batch_confidences,
+                                                                                                           batch_request_info.get_test_ids(), batch_request_info.get_image_infos(),
+                                                                                                           classes)
+        image_prediction_results = []
 
-        for testId in testIdToPredictionSummaries.keys():
-            predictionSummaries = testIdToPredictionSummaries[testId]
-            imagePredictionResult = ImagePredictionResult.getInstance(testId, predictionSummaries)
-            imagePredictionResults.append(imagePredictionResult)
+        for test_id in test_id_to_prediction_summaries.keys():
+            prediction_summaries = test_id_to_prediction_summaries[test_id]
+            image_prediction_result = ImagePredictionResult.get_instance(test_id, prediction_summaries)
+            image_prediction_results.append(image_prediction_result)
 
-        return imagePredictionResults
-
-    @staticmethod
-    def getInstance(testId: int, predictionSummaries: [PredictionsSummary]):
-        return ImagePredictionResult(testId, predictionSummaries)
+        return image_prediction_results
 
     @staticmethod
-    def __generateTestIdToPredictionSummaries(batchConfidences: [float], batchTestIds: [int], batchImageInfos: [ImageInfo], classes: {}) -> {}:
-        testIdToPredictionSummaries = {}
-
-        for index in range(len(batchConfidences)):
-            testId = batchTestIds[index]
-            imageInfo = batchImageInfos[index]
-            confidences = batchConfidences[index]
-            predictionSummary = ImagePredictionResult.__generatePredictionSummary(imageInfo, confidences, classes)
-
-            if not (testId in testIdToPredictionSummaries):
-                testIdToPredictionSummaries[testId] = []
-
-            testIdToPredictionSummaries[testId].append(predictionSummary)
-
-        return testIdToPredictionSummaries
+    def get_instance(test_id: int, prediction_summaries: [PredictionsSummary]):
+        return ImagePredictionResult(test_id, prediction_summaries)
 
     @staticmethod
-    def __generatePredictionSummary(imageInfo: ImageInfo, confidences: [float], classes: {}) -> PredictionsSummary:
-        classIds = range(len(confidences))
-        classNames = [classes[classId] for classId in classIds]
-        predictionInfos = PredictionInfo.generatePredictionInfos(
-            confidences, classIds, classNames, 0.0, 1.0)
-        predictionSummary = PredictionsSummary(imageInfo, predictionInfos)
-        return predictionSummary
+    def __generate_test_id_to_prediction_summaries(batch_confidences: [float], batch_test_ids: [int], batch_image_infos: [ImageInfo], classes: {}) -> {}:
+        test_id_to_prediction_summaries = {}
 
-    def __init__(self, testId: int, predictionSummaries: [PredictionsSummary]):
-        self.__testId = testId
-        self.__predictionSummaries = predictionSummaries
+        for index in range(len(batch_confidences)):
+            test_id = batch_test_ids[index]
+            image_info = batch_image_infos[index]
+            confidences = batch_confidences[index]
+            prediction_summary = ImagePredictionResult.__generate_prediction_summary(image_info, confidences, classes)
 
-    def getTestId(self):
-        return self.__testId
+            if not (test_id in test_id_to_prediction_summaries):
+                test_id_to_prediction_summaries[test_id] = []
 
-    def getPredictionSummaries(self):
-        return self.__predictionSummaries
+            test_id_to_prediction_summaries[test_id].append(prediction_summary)
+
+        return test_id_to_prediction_summaries
+
+    @staticmethod
+    def __generate_prediction_summary(image_info: ImageInfo, confidences: [float], classes: {}) -> PredictionsSummary:
+        class_ids = range(len(confidences))
+        class_names = [classes[class_id] for class_id in class_ids]
+        prediction_infos = PredictionInfo.generate_prediction_infos(
+            confidences, class_ids, class_names, 0.0, 1.0)
+        prediction_summary = PredictionsSummary(image_info, prediction_infos)
+        return prediction_summary
+
+    def __init__(self, test_id: int, prediction_summaries: [PredictionsSummary]):
+        self.__test_id = test_id
+        self.__prediction_summaries = prediction_summaries
+
+    def get_test_id(self):
+        return self.__test_id
+
+    def get_prediction_summaries(self):
+        return self.__prediction_summaries

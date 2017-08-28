@@ -6,69 +6,69 @@ import os
 
 class DataSetup:
     @staticmethod
-    def establishValidationDataIfNeeded(trainingDirectory: str, validDirectory: str, imageFileExtension='jpg', validToTestRatio=0.1):
-        trainingDirectory = str.replace(trainingDirectory, "/", "\\")
-        validDirectory = str.replace(validDirectory, "/", "\\")
+    def establish_validation_data_if_needed(training_directory: str, valid_directory: str, image_file_extension='jpg', valid_to_test_ratio=0.1):
+        training_directory = str.replace(training_directory, "/", "\\")
+        valid_directory = str.replace(valid_directory, "/", "\\")
 
-        if not os.path.exists(validDirectory):
-            os.mkdir(validDirectory)
+        if not os.path.exists(valid_directory):
+            os.mkdir(valid_directory)
 
-        validationClassDirectoryNames = glob(validDirectory + "/*/")
+        validation_class_directory_names = glob(valid_directory + "/*/")
 
-        if len(validationClassDirectoryNames) > 0:
+        if len(validation_class_directory_names) > 0:
             return
 
-        trainingClassDirectoryPaths = glob(trainingDirectory + "/*/")
+        training_class_directory_paths = glob(training_directory + "/*/")
 
-        for trainingClassDirectoryPath in trainingClassDirectoryPaths:
-            newValidClassDirectoryPath = str.replace(trainingClassDirectoryPath, trainingDirectory, validDirectory)
+        for training_class_directory_path in training_class_directory_paths:
+            new_valid_class_directory_path = str.replace(training_class_directory_path, training_directory, valid_directory)
 
-            if not os.path.exists(newValidClassDirectoryPath):
-                os.mkdir(newValidClassDirectoryPath)
+            if not os.path.exists(new_valid_class_directory_path):
+                os.mkdir(new_valid_class_directory_path)
 
-            trainingImages = glob(trainingClassDirectoryPath + "/*." + imageFileExtension)
-            numValidImages = int(round(validToTestRatio * len(trainingImages), 0))
-            testImagesToMove = permutation(trainingImages)[:numValidImages]
+            training_images = glob(training_class_directory_path + "/*." + image_file_extension)
+            num_valid_images = int(round(valid_to_test_ratio * len(training_images), 0))
+            test_images_to_move = permutation(training_images)[:num_valid_images]
 
-            for testImageToMove in testImagesToMove:
-                newValidImagePath = str.replace(testImageToMove, trainingDirectory, validDirectory)
-                shutil.move(testImageToMove, newValidImagePath)
+            for test_image_to_move in test_images_to_move:
+                new_valid_image_path = str.replace(test_image_to_move, training_directory, valid_directory)
+                shutil.move(test_image_to_move, new_valid_image_path)
 
     @staticmethod
-    def establishSampleDataIfNeeded(mainDataDirectory: str, sampleDirectory: str, imageFileExtension='jpg', sampleRatio=0.02):
-        mainDataDirectory = str.replace(mainDataDirectory, "/", "\\")
-        sampleDirectory = str.replace(sampleDirectory, "/", "\\")
+    def establish_sample_data_if_needed(main_data_directory: str, sample_directory: str, image_file_extension='jpg', sample_ratio=0.02):
+        main_data_directory = str.replace(main_data_directory, "/", "\\")
+        sample_directory = str.replace(sample_directory, "/", "\\")
 
-        if not os.path.exists(sampleDirectory):
-            os.mkdir(sampleDirectory)
+        if not os.path.exists(sample_directory):
+            os.mkdir(sample_directory)
 
-        sampleDirectoryNames = glob(sampleDirectory + "/*/")
+        sample_directoryNames = glob(sample_directory + "/*/")
 
-        if len(sampleDirectoryNames) > 0:
+        if len(sample_directoryNames) > 0:
             return
 
-        mainDataDirectoryPaths = glob(mainDataDirectory + "/*/")
+        main_data_directoryPaths = glob(main_data_directory + "/*/")
 
-        for mainDataDirectoryPath in mainDataDirectoryPaths:
-            newSampleDirectoryPath = str.replace(mainDataDirectoryPath, mainDataDirectory, sampleDirectory)
+        for main_data_directoryPath in main_data_directoryPaths:
+            new_sample_directory_path = str.replace(main_data_directoryPath, main_data_directory, sample_directory)
 
-            if not os.path.exists(newSampleDirectoryPath):
-                os.mkdir(newSampleDirectoryPath)
+            if not os.path.exists(new_sample_directory_path):
+                os.mkdir(new_sample_directory_path)
 
-            mainSubDirectoryPaths = glob(mainDataDirectoryPath + "/*/")
+            main_sub_directory_paths = glob(main_data_directoryPath + "/*/")
 
-            for mainSubDirectoryPath in mainSubDirectoryPaths:
-                newSampleSubDirectoryPath = str.replace(mainSubDirectoryPath, mainDataDirectory, sampleDirectory)
+            for main_sub_directory_path in main_sub_directory_paths:
+                new_sample_sub_directory_path = str.replace(main_sub_directory_path, main_data_directory, sample_directory)
 
-                if not os.path.exists(newSampleSubDirectoryPath):
-                    os.mkdir(newSampleSubDirectoryPath)
+                if not os.path.exists(new_sample_sub_directory_path):
+                    os.mkdir(new_sample_sub_directory_path)
 
-                sourceImages = glob(mainSubDirectoryPath + "/*." + imageFileExtension)
-                numSampleImages = int(round(sampleRatio * len(sourceImages), 0))
-                sourceImagesToCopy = permutation(sourceImages)[:numSampleImages]
+                source_images = glob(main_sub_directory_path + "/*." + image_file_extension)
+                num_sample_images = int(round(sample_ratio * len(source_images), 0))
+                source_images_to_copy = permutation(source_images)[:num_sample_images]
 
-                for sourceImageToCopy in sourceImagesToCopy:
-                    newSampleImagePath = str.replace(sourceImageToCopy, mainDataDirectory, sampleDirectory)
-                    shutil.copy(sourceImageToCopy, newSampleImagePath)
+                for source_image_to_copy in source_images_to_copy:
+                    new_sample_image_path = str.replace(source_image_to_copy, main_data_directory, sample_directory)
+                    shutil.copy(source_image_to_copy, new_sample_image_path)
 
 

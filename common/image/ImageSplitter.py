@@ -4,137 +4,137 @@ from common.image.ImageInfo import ImageInfo
 
 class ImageSplitter:
     @staticmethod
-    def getImageDividedIntoVerticalHalves(sourceImageInfo: ImageInfo) -> [ImageInfo]:
-        newImageInfos = []
-        fullHeight = sourceImageInfo.getHeight()
-        halfWidth = ImageSplitter.__getHalfWidth(sourceImageInfo)
+    def get_image_divided_into_vertical_halves(source_image_info: ImageInfo) -> [ImageInfo]:
+        new_image_infos = []
+        full_height = source_image_info.get_height()
+        half_width = ImageSplitter.__get_half_width(source_image_info)
 
         # Left Half
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, 0, halfWidth, fullHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, 0, half_width, full_height))
         # Right Half
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, halfWidth + 1, 0, halfWidth, fullHeight))
-        return newImageInfos
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, half_width + 1, 0, half_width, full_height))
+        return new_image_infos
 
     @staticmethod
-    def getImageDividedIntoHorizontalHalves(sourceImageInfo: ImageInfo) -> [ImageInfo]:
-        newImageInfos = []
-        fullWidth = sourceImageInfo.getWidth()
-        halfHeight = ImageSplitter.__getHalfHeight(sourceImageInfo)
+    def get_image_divided_into_horizontal_halves(source_image_info: ImageInfo) -> [ImageInfo]:
+        new_image_infos = []
+        full_width = source_image_info.get_width()
+        half_height = ImageSplitter.__get_half_height(source_image_info)
 
         # Top Half
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, 0, fullWidth, halfHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, 0, full_width, half_height))
         # Bottom Half
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, halfHeight + 1, fullWidth, halfHeight))
-        return newImageInfos
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, half_height + 1, full_width, half_height))
+        return new_image_infos
 
     @staticmethod
-    def getImageDividedIntoSquareQuadrants(sourceImageInfo: ImageInfo) -> [ImageInfo]:
-        newImageInfos = []
-        halfHeight = ImageSplitter.__getHalfHeight(sourceImageInfo)
-        halfWidth = ImageSplitter.__getHalfWidth(sourceImageInfo)
+    def get_image_divided_into_square_quadrants(source_image_info: ImageInfo) -> [ImageInfo]:
+        new_image_infos = []
+        half_height = ImageSplitter.__get_half_height(source_image_info)
+        half_width = ImageSplitter.__get_half_width(source_image_info)
 
         # Top Left
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, 0, halfWidth, halfHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, 0, half_width, half_height))
         # Top Right
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, halfWidth + 1, 0, halfWidth, halfHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, half_width + 1, 0, half_width, half_height))
         # Bottom Left
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, halfHeight + 1, halfWidth, halfHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, half_height + 1, half_width, half_height))
         # Bottom Right
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, halfWidth + 1, halfHeight + 1, halfWidth, halfHeight))
-        return newImageInfos
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, half_width + 1, half_height + 1, half_width, half_height))
+        return new_image_infos
 
     @staticmethod
-    def getImageHalfCenter(sourceImageInfo: ImageInfo) -> [ImageInfo]:
-        newImageInfos = []
-        halfHeight = ImageSplitter.__getHalfHeight(sourceImageInfo)
-        halfWidth = ImageSplitter.__getHalfWidth(sourceImageInfo)
-        quarterHeight = int(halfHeight / 2)
-        quarterWidth = int(halfWidth / 2)
+    def get_image_half_center(source_image_info: ImageInfo) -> [ImageInfo]:
+        new_image_infos = []
+        half_height = ImageSplitter.__get_half_height(source_image_info)
+        half_width = ImageSplitter.__get_half_width(source_image_info)
+        quarter_height = int(half_height / 2)
+        quarter_width = int(half_width / 2)
 
         # Top Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, quarterWidth, quarterHeight, halfWidth, halfHeight))
-        return newImageInfos
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, quarter_width, quarter_height, half_width, half_height))
+        return new_image_infos
 
     @staticmethod
-    def getImageDividedIntoCrossQuadrants(sourceImageInfo: ImageInfo) -> [ImageInfo]:
-        newImageInfos = []
-        halfHeight = ImageSplitter.__getHalfHeight(sourceImageInfo)
-        halfWidth = ImageSplitter.__getHalfWidth(sourceImageInfo)
-        quarterHeight = int(halfHeight / 2)
-        quarterWidth = int(halfWidth / 2)
+    def get_image_divided_into_cross_quadrants(source_image_info: ImageInfo) -> [ImageInfo]:
+        new_image_infos = []
+        half_height = ImageSplitter.__get_half_height(source_image_info)
+        half_width = ImageSplitter.__get_half_width(source_image_info)
+        quarter_height = int(half_height / 2)
+        quarter_width = int(half_width / 2)
 
         # Top Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, quarterWidth, 0, halfWidth, halfHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, quarter_width, 0, half_width, half_height))
         # Bottom Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, quarterWidth, halfHeight + 1, halfWidth, halfHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, quarter_width, half_height + 1, half_width, half_height))
         # Left Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, quarterHeight, halfWidth, halfHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, quarter_height, half_width, half_height))
         # Right Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, halfWidth + 1, quarterHeight, halfWidth, halfHeight))
-        return newImageInfos
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, half_width + 1, quarter_height, half_width, half_height))
+        return new_image_infos
 
     @staticmethod
-    def getImageDividedIntoSquareThreeQuartersCorners(sourceImageInfo: ImageInfo) -> [ImageInfo]:
-        newImageInfos = []
+    def get_image_divided_into_square_three_quarters_corners(source_image_info: ImageInfo) -> [ImageInfo]:
+        new_image_infos = []
 
-        threeQuartersHeight = ImageSplitter.__getThreeQuartersHeight(sourceImageInfo)
-        threeQuartersWidth = ImageSplitter.__getThreeQuartersWidth(sourceImageInfo)
-        oneQuarterHeight = sourceImageInfo.getHeight() - threeQuartersHeight
-        oneQuarterWidth = sourceImageInfo.getWidth() - threeQuartersWidth
+        three_quarters_height = ImageSplitter.__get_three_quarters_height(source_image_info)
+        three_quarters_width = ImageSplitter.__get_three_quarters_width(source_image_info)
+        one_quarter_height = source_image_info.get_height() - three_quarters_height
+        one_quarter_width = source_image_info.get_width() - three_quarters_width
 
         # Top Left
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, 0, threeQuartersWidth, threeQuartersHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, 0, three_quarters_width, three_quarters_height))
         # Top Right
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, oneQuarterWidth + 1, 0, threeQuartersWidth, threeQuartersHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, one_quarter_width + 1, 0, three_quarters_width, three_quarters_height))
         # Bottom Left
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, oneQuarterHeight + 1, threeQuartersWidth, threeQuartersHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, one_quarter_height + 1, three_quarters_width, three_quarters_height))
         # Bottom Right
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, oneQuarterWidth + 1, oneQuarterHeight + 1, threeQuartersWidth, threeQuartersHeight))
-        return newImageInfos
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, one_quarter_width + 1, one_quarter_height + 1, three_quarters_width, three_quarters_height))
+        return new_image_infos
 
     @staticmethod
-    def getImageDividedIntoThreeQuartersCross(sourceImageInfo: ImageInfo) -> [ImageInfo]:
-        newImageInfos = []
-        threeQuartersHeight = ImageSplitter.__getThreeQuartersHeight(sourceImageInfo)
-        threeQuartersWidth = ImageSplitter.__getThreeQuartersWidth(sourceImageInfo)
-        oneQuarterHeight = sourceImageInfo.getHeight() - threeQuartersHeight
-        oneQuarterWidth = sourceImageInfo.getWidth() - threeQuartersWidth
+    def get_image_divided_into_three_quarters_cross(source_image_info: ImageInfo) -> [ImageInfo]:
+        new_image_infos = []
+        three_quarters_height = ImageSplitter.__get_three_quarters_height(source_image_info)
+        three_quarters_width = ImageSplitter.__get_three_quarters_width(source_image_info)
+        one_quarter_height = source_image_info.get_height() - three_quarters_height
+        one_quarter_width = source_image_info.get_width() - three_quarters_width
 
         # Top Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, oneQuarterWidth, 0, threeQuartersWidth, threeQuartersHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, one_quarter_width, 0, three_quarters_width, three_quarters_height))
         # Bottom Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, oneQuarterWidth, oneQuarterHeight + 1, threeQuartersWidth, threeQuartersHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, one_quarter_width, one_quarter_height + 1, three_quarters_width, three_quarters_height))
         # Left Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, 0, oneQuarterWidth, threeQuartersWidth, threeQuartersHeight))
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, 0, one_quarter_width, three_quarters_width, three_quarters_height))
         # Right Center
-        newImageInfos.append(ImageSplitter.__getImagePortion(sourceImageInfo, oneQuarterHeight + 1, oneQuarterHeight, threeQuartersWidth, threeQuartersHeight))
-        return newImageInfos
+        new_image_infos.append(ImageSplitter.__get_image_portion(source_image_info, one_quarter_height + 1, one_quarter_height, three_quarters_width, three_quarters_height))
+        return new_image_infos
 
     @staticmethod
-    def __getImagePortion(sourceImageInfo, beginX: int, beginY: int, width: int, height: int):
-        cropBox = CropBox(beginX, beginY, width, height)
-        return ImageInfo.getInstance(sourceImageInfo.getImageNumber(), sourceImageInfo.getImagePath(), cropBox)
+    def __get_image_portion(source_image_info, begin_x: int, begin_y: int, width: int, height: int):
+        crop_box = CropBox(begin_x, begin_y, width, height)
+        return ImageInfo.get_instance(source_image_info.get_image_number(), source_image_info.get_image_path(), crop_box)
 
     @staticmethod
-    def __getHalfWidth(sourceImageInfo: ImageInfo) -> int:
-        fullWidth = sourceImageInfo.getWidth()
-        halfWidth = round(fullWidth / 2, 0) - 1
-        return int(halfWidth)
+    def __get_half_width(source_image_info: ImageInfo) -> int:
+        full_width = source_image_info.get_width()
+        half_width = round(full_width / 2, 0) - 1
+        return int(half_width)
 
     @staticmethod
-    def __getHalfHeight(sourceImageInfo: ImageInfo) -> int:
-        fullHeight = sourceImageInfo.getHeight()
-        halfHeight = round(fullHeight / 2, 0) - 1
-        return int(halfHeight)
+    def __get_half_height(source_image_info: ImageInfo) -> int:
+        full_height = source_image_info.get_height()
+        half_height = round(full_height / 2, 0) - 1
+        return int(half_height)
 
     @staticmethod
-    def __getThreeQuartersHeight(sourceImageInfo: ImageInfo) -> int:
-        fullHeight = sourceImageInfo.getHeight()
-        threeQuartersHeight = round(fullHeight * 3 / 4, 0) - 1
-        return int(threeQuartersHeight)
+    def __get_three_quarters_height(source_image_info: ImageInfo) -> int:
+        full_height = source_image_info.get_height()
+        three_quarters_height = round(full_height * 3 / 4, 0) - 1
+        return int(three_quarters_height)
 
     @staticmethod
-    def __getThreeQuartersWidth(sourceImageInfo: ImageInfo) -> int:
-        fullWidth = sourceImageInfo.getWidth()
-        threeQuartersWidth = round(fullWidth * 3 / 4, 0) - 1
-        return int(threeQuartersWidth)
+    def __get_three_quarters_width(source_image_info: ImageInfo) -> int:
+        full_width = source_image_info.get_width()
+        three_quarters_width = round(full_width * 3 / 4, 0) - 1
+        return int(three_quarters_width)

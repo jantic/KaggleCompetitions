@@ -1,40 +1,40 @@
 class PredictionInfo:
     @staticmethod
-    def generatePredictionInfos(confidences: [float], classIds: [int], classNames: [str], minConfidence: float, maxConfidence: float) -> []:
-        predictionInfos = []
+    def generate_prediction_infos(confidences: [float], class_ids: [int], class_names: [str], min_confidence: float, max_confidence: float) -> []:
+        prediction_infos = []
         for i in range(len(confidences)):
-            rawConfidence = confidences[i]
-            confidence = PredictionInfo.__getClippedConfidence(rawConfidence, minConfidence, maxConfidence)
-            classId = classIds[i]
-            className = classNames[i]
-            predictionInfo = PredictionInfo(confidence, classId, className)
-            predictionInfos.append(predictionInfo)
+            raw_confidence = confidences[i]
+            confidence = PredictionInfo.__get_clipped_confidence(raw_confidence, min_confidence, max_confidence)
+            class_id = class_ids[i]
+            class_name = class_names[i]
+            prediction_info = PredictionInfo(confidence, class_id, class_name)
+            prediction_infos.append(prediction_info)
 
-        return predictionInfos
+        return prediction_infos
 
-    def __init__(self, confidence: float, classId: int, className: str):
+    def __init__(self, confidence: float, class_id: int, class_name: str):
         self.__confidence = confidence
-        self.__classId = classId
-        self.__className = className
+        self.__class_id = class_id
+        self.__class_name = class_name
 
-    def getConfidence(self) -> float:
+    def get_confidence(self) -> float:
         return self.__confidence
 
-    def getClassId(self) -> int:
-        return self.__classId
+    def get_class_id(self) -> int:
+        return self.__class_id
 
-    def getClassName(self) -> str:
-        return self.__className
+    def get_class_name(self) -> str:
+        return self.__class_name
 
     @staticmethod
-    def __getClippedConfidence(rawConfidence: float, minConfidence: float, maxConfidence: float):
-        if rawConfidence < minConfidence:
-            return minConfidence
+    def __get_clipped_confidence(raw_confidence: float, min_confidence: float, max_confidence: float):
+        if raw_confidence < min_confidence:
+            return min_confidence
 
-        if rawConfidence > maxConfidence:
-            return maxConfidence
+        if raw_confidence > max_confidence:
+            return max_confidence
 
-        return rawConfidence
+        return raw_confidence
 
     def __lt__(self, other):
-        return self.getConfidence() < other.getConfidence()
+        return self.get_confidence() < other.get_confidence()

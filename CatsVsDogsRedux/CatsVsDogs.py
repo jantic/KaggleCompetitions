@@ -13,31 +13,31 @@ reload(utils)
 np.set_printoptions(precision=4, linewidth=100)
 reload(vgg16)
 
-dataPath = "data/"
+data_path = "data/"
 # dataPath = "data/sample/"
-trainingSetPath = dataPath + "train"
-validationSetPath = dataPath + "valid"
-testSetPath = dataPath + "test1"
+training_set_path = data_path + "train"
+validation_set_path = data_path + "valid"
+test_set_path = data_path + "test1"
 
-visTestClass = 'dogs'
-visTestPath = validationSetPath + "/" + visTestClass
+vis_test_class = 'dogs'
+vis_test_path = validation_set_path + "/" + vis_test_class
 
-numberOfEpochs = 50
+number_of_epochs = 50
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
-vgg = Vgg16(True, trainingSetPath, training_batch_size, validationSetPath, validation_batch_size)
-# vgg.refineTraining(numberOfEpochs)
-imageClassifer = MasterImageClassifier(vgg)
+vgg = Vgg16(True, training_set_path, training_batch_size, validation_set_path, validation_batch_size)
+# vgg.refine_training(number_of_epochs)
+image_classifier = MasterImageClassifier(vgg)
 
 # pr = cProfile.Profile()
 # pr.enable()
 start = time.time()
 
-predictionSummaries = imageClassifer.getAllPredictions(testSetPath, False, test_batch_size)
-KaggleCsvWriter.writePredictionsForClassIdToCsv(predictionSummaries, 1)
-testResultSummaries = imageClassifer.getAllTestResults(visTestPath, False, test_batch_size, visTestClass)
-ImagePerformanceVisualizer.doVisualizations(testResultSummaries, visTestClass, 5, True, True, True, True)
+prediction_summaries = image_classifier.get_all_predictions(test_set_path, False, test_batch_size)
+KaggleCsvWriter.write_predictions_for_class_id_to_csv(prediction_summaries, 1)
+test_result_summaries = image_classifier.get_all_test_results(vis_test_path, False, test_batch_size, vis_test_class)
+ImagePerformanceVisualizer.do_visualizations(test_result_summaries, vis_test_class, 5, True, True, True, True)
 
 end = time.time()
 print(end - start)

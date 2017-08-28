@@ -9,14 +9,14 @@ from common.output.csv.KaggleCsvWriter import KaggleCsvWriter
 from common.visualization.ImagePerformanceVisualizer import ImagePerformanceVisualizer
 from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImageClassifier
 
-runMainTest = False
-refineTraining = False
-imageSplitting = False
-initializeData = False
-visualizePerformance = True
-visualizationClass = 'c5'
-useSample = False
-numberOfEpochs = 30
+run_main_test = False
+refine_training = False
+image_splitting = False
+initialize_data = False
+visualize_performance = True
+visualization_class = 'c5'
+use_sample = False
+number_of_epochs = 30
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
@@ -25,40 +25,40 @@ reload(utils)
 np.set_printoptions(precision=4, linewidth=100)
 reload(vgg16)
 
-mainDataPath = "data/main/"
-mainTrainingSetPath = mainDataPath + "train"
-mainValidationSetPath = mainDataPath + "valid"
-mainTestSetPath = mainDataPath + "test1"
+main_data_path = "data/main/"
+main_training_set_path = main_data_path + "train"
+main_validation_set_path = main_data_path + "valid"
+main_test_set_path = main_data_path + "test1"
 
-sampleDataPath = "data/sample/"
-sampleTrainingSetPath = sampleDataPath + "train"
-sampleValidationSetPath = sampleDataPath + "valid"
-sampleTestSetPath = sampleDataPath + "test1"
+sample_data_path = "data/sample/"
+sample_training_set_path = sample_data_path + "train"
+sample_validation_set_path = sample_data_path + "valid"
+sample_test_set_path = sample_data_path + "test1"
 
-if initializeData:
-    DataSetup.establishValidationDataIfNeeded(mainTrainingSetPath, mainValidationSetPath)
-    DataSetup.establishSampleDataIfNeeded(mainDataPath, sampleDataPath, sampleRatio=0.04)
+if initialize_data:
+    DataSetup.establish_validation_data_if_needed(main_training_set_path, main_validation_set_path)
+    DataSetup.establish_sample_data_if_needed(main_data_path, sample_data_path, sample_ratio=0.04)
 
-trainingSetPath = sampleTrainingSetPath if useSample else mainTrainingSetPath
-validationSetPath = sampleValidationSetPath if useSample else mainValidationSetPath
+training_set_path = sample_training_set_path if use_sample else main_training_set_path
+validation_set_path = sample_validation_set_path if use_sample else main_validation_set_path
 
-vgg = Vgg16(True, trainingSetPath, training_batch_size, validationSetPath, validation_batch_size)
+vgg = Vgg16(True, training_set_path, training_batch_size, validation_set_path, validation_batch_size)
 
-if refineTraining:
-    vgg.refineTraining(numberOfEpochs)
+if refine_training:
+    vgg.refine_training(number_of_epochs)
 
-imageClassifier = MasterImageClassifier(vgg)
+image_classifier = MasterImageClassifier(vgg)
 
-if runMainTest:
-    predictionSummaries = imageClassifier.getAllPredictions(mainTestSetPath, False, test_batch_size)
-    KaggleCsvWriter.writePredictionsForClassIdToCsv(predictionSummaries, 1)
+if run_main_test:
+    prediction_summaries = image_classifier.get_all_predictions(main_test_set_path, False, test_batch_size)
+    KaggleCsvWriter.write_predictions_for_class_id_to_csv(prediction_summaries, 1)
 
-if visualizePerformance:
-    testResultSummaries = []
-    classes = vgg.getClasses()
+if visualize_performance:
+    test_result_summaries = []
+    classes = vgg.get_classes()
 
     for clazz in classes:
-        visualizationTestPath = validationSetPath + "/" + clazz
-        testResultSummaries.extend(imageClassifier.getAllTestResults(visualizationTestPath, imageSplitting, test_batch_size, clazz))
+        visualization_test_path = validation_set_path + "/" + clazz
+        test_result_summaries.extend(image_classifier.get_all_test_results(visualization_test_path, image_splitting, test_batch_size, clazz))
 
-    ImagePerformanceVisualizer.doVisualizations(testResultSummaries, visualizationClass, 5, True, True, True, True)
+    ImagePerformanceVisualizer.do_visualizations(test_result_summaries, visualization_class, 5, True, True, True, True)

@@ -9,65 +9,65 @@ from common.image.CropBox import CropBox
 
 class ImageInfo:
     @staticmethod
-    def loadImageInfosFromDirectory(imagesDirectoryPath: str):
-        fileExtension = "jpg"
-        imagesLocator = os.path.join(imagesDirectoryPath, "*." + fileExtension)
-        imagePaths = glob.glob(imagesLocator, recursive=True)
-        imageInfos = []
+    def load_image_infos_from_directory(images_directory_path: str):
+        file_extension = "jpg"
+        images_locator = os.path.join(images_directory_path, "*." + file_extension)
+        image_paths = glob.glob(images_locator, recursive=True)
+        image_infos = []
 
-        for imagePath in imagePaths:
-            imageInfo = ImageInfo.getInstanceForImagePath(imagePath)
-            imageInfos.append(imageInfo)
+        for image_path in image_paths:
+            image_info = ImageInfo.get_instance_for_image_path(image_path)
+            image_infos.append(image_info)
 
-        return imageInfos
-
-    @staticmethod
-    def getInstanceForImagePath(imagePath: str):
-        imageNumber = ImageInfo.__determineImageNumber(imagePath)
-        return ImageInfo.getInstance(imageNumber, imagePath)
+        return image_infos
 
     @staticmethod
-    def getInstance(imageNumber: int, imagePath: str, cropBox: CropBox = None):
-        return ImageInfo(imageNumber, imagePath, cropBox)
+    def get_instance_for_image_path(image_path: str):
+        image_number = ImageInfo.__determine_image_number(image_path)
+        return ImageInfo.get_instance(image_number, image_path)
 
-    def __init__(self, imageNumber: int, imagePath: str, cropBox: CropBox = None):
-        self.__imageNumber = imageNumber
-        self.__imagePath = imagePath
-        self.__cropBox = cropBox
+    @staticmethod
+    def get_instance(image_number: int, image_path: str, crop_box: CropBox = None):
+        return ImageInfo(image_number, image_path, crop_box)
+
+    def __init__(self, image_number: int, image_path: str, crop_box: CropBox = None):
+        self.__image_number = image_number
+        self.__image_path = image_path
+        self.__crop_box = crop_box
         # Just using for dimension info, then discarding to preserve memory
-        pilImage = self.getPilImage()
-        self.__width = pilImage.width
-        self.__height = pilImage.height
+        pil_image = self.get_pil_image()
+        self.__width = pil_image.width
+        self.__height = pil_image.height
 
-    def getImageNumber(self) -> int:
-        return self.__imageNumber
+    def get_image_number(self) -> int:
+        return self.__image_number
 
     # lazy loading, to prevent huge amounts of memory being used
-    def getPilImage(self) -> Image:
-        originalPillImage = ImageInfo.__loadPILImageFromPath(self.__imagePath)
+    def get_pil_image(self) -> Image:
+        original_pil_image = ImageInfo.__load_pil_image_from_path(self.__image_path)
 
-        if self.__cropBox is None:
-            return originalPillImage
+        if self.__crop_box is None:
+            return original_pil_image
 
-        return ImageInfo.__getPilImagePortion(originalPillImage, self.__cropBox)
+        return ImageInfo.__get_pil_image_portion(original_pil_image, self.__crop_box)
 
-    def getImagePath(self) -> str:
-        return self.__imagePath
+    def get_image_path(self) -> str:
+        return self.__image_path
 
-    def getWidth(self) -> int:
+    def get_width(self) -> int:
         return self.__width
 
-    def getHeight(self) -> int:
+    def get_height(self) -> int:
         return self.__height
 
     @staticmethod
-    def __determineImageNumber(imagePath) -> int:
-        return os.path.split(imagePath)[-1][0:-4]
+    def __determine_image_number(image_path) -> int:
+        return os.path.split(image_path)[-1][0:-4]
 
     @staticmethod
-    def __loadPILImageFromPath(imagePath: str) -> Image:
-        return image_processing.load_img(imagePath)
+    def __load_pil_image_from_path(image_path: str) -> Image:
+        return image_processing.load_img(image_path)
 
     @staticmethod
-    def __getPilImagePortion(sourcePilImage: Image, cropBox: CropBox) -> Image:
-        return sourcePilImage.crop((cropBox.getBeginX(), cropBox.getBeginY(), cropBox.getEndX(), cropBox.getEndY()))
+    def __get_pil_image_portion(source_pil_image: Image, crop_box: CropBox) -> Image:
+        return source_pil_image.crop((crop_box.get_begin_x(), crop_box.get_begin_y(), crop_box.get_end_x(), crop_box.get_end_y()))

@@ -1,24 +1,24 @@
 class CropBox:
-    def __init__(self, beginX: int, beginY: int, width: int, height: int):
-        self.__beginX = beginX
-        self.__beginY = beginY
+    def __init__(self, begin_x: int, begin_y: int, width: int, height: int):
+        self.__begin_x = begin_x
+        self.__begin_y = begin_y
         self.__width = width
         self.__height = height
 
-    def getBeginX(self):
-        return self.__beginX
+    def get_begin_x(self):
+        return self.__begin_x
 
-    def getBeginY(self):
-        return self.__beginY
+    def get_begin_y(self):
+        return self.__begin_y
 
-    def getEndX(self):
-        return self.__beginX + self.__width
+    def get_end_x(self):
+        return self.__begin_x + self.__width
 
-    def getEndY(self):
-        return self.__beginY + self.__height
+    def get_end_y(self):
+        return self.__begin_y + self.__height
 
-    def getWidth(self):
+    def get_width(self):
         return self.__width
 
-    def getHeight(self):
+    def get_height(self):
         return self.__height

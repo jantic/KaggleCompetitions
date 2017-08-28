@@ -2,15 +2,15 @@ from common.model.deeplearning.prediction.PredictionsSummary import PredictionsS
 
 
 class TestResultSummary:
-    def __init__(self, predictionSummary: PredictionsSummary, actualClassName: str):
-        self.__predictionSummary = predictionSummary
-        self.__actualClassName = actualClassName
+    def __init__(self, prediction_summary: PredictionsSummary, actual_class_name: str):
+        self.__prediction_summary = prediction_summary
+        self.__actual_class_name = actual_class_name
 
-    def getPredictionSummary(self) -> PredictionsSummary:
-        return self.__predictionSummary
+    def get_prediction_summary(self) -> PredictionsSummary:
+        return self.__prediction_summary
 
-    def getActualClassName(self) -> str:
-        return self.__actualClassName
+    def get_actual_class_name(self) -> str:
+        return self.__actual_class_name
 
-    def isCorrect(self) -> bool:
-        return self.__actualClassName == self.__predictionSummary.getTopPrediction().getClassName()
+    def is_correct(self) -> bool:
+        return self.__actual_class_name == self.__prediction_summary.get_top_prediction().get_class_name()

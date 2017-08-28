@@ -7,43 +7,43 @@ from common.image.ImageInfo import ImageInfo
 
 class ModelImageConverter:
     @staticmethod
-    def getAllPilImages(imageInfos: [ImageInfo]) -> [Image]:
-        pilImages = []
+    def get_all_pil_images(image_infos: [ImageInfo]) -> [Image]:
+        pil_images = []
 
-        for imageInfo in imageInfos:
-            pilImages.append(imageInfo.getPilImage())
+        for image_info in image_infos:
+            pil_images.append(image_info.get_pil_image())
 
-        return pilImages
+        return pil_images
 
     @staticmethod
-    def generateImageArrayForPrediction(pilImages: [Image], width: int, height: int) -> [int]:
-        resizedPilImages = []
+    def generate_image_array_for_prediction(pil_images: [Image], width: int, height: int) -> [int]:
+        resized_pil_images = []
 
-        for pilImage in pilImages:
-            resizedPilImage = ModelImageConverter.__generateResizedPilImage(pilImage, width, height)
-            resizedPilImages.append(resizedPilImage)
+        for pil_image in pil_images:
+            resized_pil_image = ModelImageConverter.__generate_resized_pil_image(pil_image, width, height)
+            resized_pil_images.append(resized_pil_image)
 
-        batch_size = len(resizedPilImages)
-        imageArray = np.zeros((batch_size,) + (3, width, height), dtype=image_processing.K.floatx())
+        batch_size = len(resized_pil_images)
+        image_array = np.zeros((batch_size,) + (3, width, height), dtype=image_processing.K.floatx())
 
-        for index in range(len(resizedPilImages)):
-            pilImage = resizedPilImages[index]
-            x = image_processing.img_to_array(pilImage)
+        for index in range(len(resized_pil_images)):
+            pil_image = resized_pil_images[index]
+            x = image_processing.img_to_array(pil_image)
             x = x.reshape(1, 3, width, height)
-            imageArray[index] = x
+            image_array[index] = x
 
-        return imageArray
+        return image_array
 
     @staticmethod
-    def __generateResizedPilImage(pilImage: Image, width: int, height: int) -> Image:
+    def __generate_resized_pil_image(pil_image: Image, width: int, height: int) -> Image:
         # crop to maintain aspect ratio, then resize
-        aspectRatio = width / height
-        croppedWidth = min(int(aspectRatio * pilImage.height), pilImage.width)
-        croppedHeight = min(int(pilImage.width / aspectRatio), pilImage.height)
-        x0 = int((pilImage.width - croppedWidth) / 2)
-        y0 = int((pilImage.height - croppedHeight) / 2)
-        x1 = pilImage.width - int((pilImage.width - croppedWidth) / 2)
-        y1 = pilImage.height - int((pilImage.height - croppedHeight) / 2)
-        croppedImage = pilImage.crop((x0, y0, x1, y1))
-        resizedImage = croppedImage.resize((width, height), PIL.Image.ANTIALIAS)
-        return resizedImage
+        aspect_ratio = width / height
+        cropped_width = min(int(aspect_ratio * pil_image.height), pil_image.width)
+        cropped_height = min(int(pil_image.width / aspect_ratio), pil_image.height)
+        x0 = int((pil_image.width - cropped_width) / 2)
+        y0 = int((pil_image.height - cropped_height) / 2)
+        x1 = pil_image.width - int((pil_image.width - cropped_width) / 2)
+        y1 = pil_image.height - int((pil_image.height - cropped_height) / 2)
+        cropped_image = pil_image.crop((x0, y0, x1, y1))
+        resized_image = cropped_image.resize((width, height), PIL.Image.ANTIALIAS)
+        return resized_image

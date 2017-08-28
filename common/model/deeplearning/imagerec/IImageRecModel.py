@@ -8,17 +8,17 @@ class IImageRecModel:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def getImageWidth(self): raise NotImplementedError
+    def get_image_width(self): raise NotImplementedError
 
     @abstractmethod
-    def getImageHeight(self): raise NotImplementedError
+    def get_image_height(self): raise NotImplementedError
 
     @abstractmethod
     def predict(self, requests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]: raise NotImplementedError
 
     @abstractmethod
-    def refineTraining(self, numEpochs: int): raise NotImplementedError
+    def refine_training(self, num_epochs: int): raise NotImplementedError
 
     @abstractmethod
-    def getClasses(self)->list: raise NotImplementedError
+    def get_classes(self)->list: raise NotImplementedError
 

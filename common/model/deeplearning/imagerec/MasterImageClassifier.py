@@ -15,85 +15,85 @@ class MasterImageClassifier:
     # and returns the prediction with the most confidence
     # TODO:  Determine batch sizes automatically?  That would be nice!
 
-    def getAllTestResults(self, testImagesPath: str, useImageSplitting: bool, batch_size: int, className: str) -> [TestResultSummary]:
-        predictionSummaries = self.getAllPredictions(testImagesPath, useImageSplitting, batch_size)
-        testResultSummaries = []
+    def get_all_test_results(self, test_images_path: str, use_image_splitting: bool, batch_size: int, class_name: str) -> [TestResultSummary]:
+        prediction_summaries = self.get_all_predictions(test_images_path, use_image_splitting, batch_size)
+        test_result_summaries = []
 
-        for predictionSummary in predictionSummaries:
-            testResultSummary = TestResultSummary(predictionSummary, className)
-            testResultSummaries.append(testResultSummary)
+        for prediction_summary in prediction_summaries:
+            test_result_summary = TestResultSummary(prediction_summary, class_name)
+            test_result_summaries.append(test_result_summary)
 
-        return testResultSummaries
+        return test_result_summaries
 
-    def getAllPredictions(self, testImagesPath: str, useImageSplitting: bool, batch_size: int) -> [PredictionsSummary]:
-        sourceImageInfos = ImageInfo.loadImageInfosFromDirectory(testImagesPath)
-        testImageInfos = MasterImageClassifier.__generateAllTestImages(sourceImageInfos, useImageSplitting)
+    def get_all_predictions(self, test_images_path: str, use_image_splitting: bool, batch_size: int) -> [PredictionsSummary]:
+        source_image_infos = ImageInfo.load_image_infos_from_directory(test_images_path)
+        test_image_infos = MasterImageClassifier.__generate_all_test_images(source_image_infos, use_image_splitting)
 
-        predictionSummaries = []
-        imagesPerTestId = int(round(len(testImageInfos) / len(sourceImageInfos), 0))
-        requestSize = MathUtils.lcm(batch_size, imagesPerTestId)
+        prediction_summaries = []
+        images_per_test_id = int(round(len(test_image_infos) / len(source_image_infos), 0))
+        request_size = MathUtils.lcm(batch_size, images_per_test_id)
 
-        while len(testImageInfos) > 0:
-            batchTestImageInfos = []
+        while len(test_image_infos) > 0:
+            batch_test_image_infos = []
             # To reduce memory footprint- only request a portion at a time that is lcm of the batch size and number of
             # test images per test id, to group same test id images together
-            while len(testImageInfos) > 0 and len(batchTestImageInfos) < requestSize:
-                batchTestImageInfos.append(testImageInfos.pop())
+            while len(test_image_infos) > 0 and len(batch_test_image_infos) < request_size:
+                batch_test_image_infos.append(test_image_infos.pop())
 
-            predictionSummaries.extend(self.__getPredictionsForAllImages(batchTestImageInfos, batch_size))
+            prediction_summaries.extend(self.__get_predictions_for_all_images(batch_test_image_infos, batch_size))
 
-        return predictionSummaries
+        return prediction_summaries
 
     @staticmethod
-    def __generateAllTestImages(fullImageInfos: [ImageInfo], useImageSplitting: bool):
-        testImageInfos = []
+    def __generate_all_test_images(full_image_infos: [ImageInfo], use_image_splitting: bool):
+        test_image_infos = []
 
-        for fullImageInfo in fullImageInfos:
-            testImageInfos.append(fullImageInfo)
+        for full_image_info in full_image_infos:
+            test_image_infos.append(full_image_info)
 
-            if useImageSplitting:
-                testImageInfos.extend(ImageSplitter.getImageDividedIntoSquareQuadrants(fullImageInfo))
-                testImageInfos.extend(ImageSplitter.getImageDividedIntoCrossQuadrants(fullImageInfo))
-                testImageInfos.extend(ImageSplitter.getImageDividedIntoHorizontalHalves(fullImageInfo))
-                testImageInfos.extend(ImageSplitter.getImageDividedIntoVerticalHalves(fullImageInfo))
-                testImageInfos.extend(ImageSplitter.getImageDividedIntoSquareThreeQuartersCorners(fullImageInfo))
-                testImageInfos.extend(ImageSplitter.getImageDividedIntoThreeQuartersCross(fullImageInfo))
-                testImageInfos.extend(ImageSplitter.getImageHalfCenter(fullImageInfo))
+            if use_image_splitting:
+                test_image_infos.extend(ImageSplitter.get_image_divided_into_square_quadrants(full_image_info))
+                test_image_infos.extend(ImageSplitter.get_image_divided_into_cross_quadrants(full_image_info))
+                test_image_infos.extend(ImageSplitter.get_image_divided_into_horizontal_halves(full_image_info))
+                test_image_infos.extend(ImageSplitter.get_image_divided_into_vertical_halves(full_image_info))
+                test_image_infos.extend(ImageSplitter.get_image_divided_into_square_three_quarters_corners(full_image_info))
+                test_image_infos.extend(ImageSplitter.get_image_divided_into_three_quarters_cross(full_image_info))
+                test_image_infos.extend(ImageSplitter.get_image_half_center(full_image_info))
 
-        return testImageInfos
+        return test_image_infos
 
-    def __getPredictionsForAllImages(self, imageInfos: [ImageInfo], batch_size: int) -> [PredictionsSummary]:
-        requests = ImagePredictionRequest.generateInstances(imageInfos)
+    def __get_predictions_for_all_images(self, image_infos: [ImageInfo], batch_size: int) -> [PredictionsSummary]:
+        requests = ImagePredictionRequest.generate_instances(image_infos)
         results = self.__model.predict(requests, batch_size)
-        finalPredictionSummaries = []
+        final_prediction_summaries = []
 
         for result in results:
-            allPredictionSummaries = result.getPredictionSummaries()
-            finalPredictionSummary = MasterImageClassifier.__generateFinalPredictionSummary(allPredictionSummaries)
-            finalPredictionSummaries.append(finalPredictionSummary)
+            all_prediction_summaries = result.get_prediction_summaries()
+            final_prediction_summary = MasterImageClassifier.__generate_final_prediction_summary(all_prediction_summaries)
+            final_prediction_summaries.append(final_prediction_summary)
 
-        return finalPredictionSummaries
+        return final_prediction_summaries
 
     @staticmethod
-    def __getFullImagePredictionSummary(predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
-        summaryWithLargestImage = predictionSummaries[0]
+    def __get_full_image_prediction_summary(prediction_summaries: [PredictionsSummary]) -> PredictionsSummary:
+        summary_with_largest_image = prediction_summaries[0]
 
-        for predictionSummary in predictionSummaries:
-            currentImageInfo = predictionSummary.getImageInfo()
-            currentImageArea = currentImageInfo.getWidth() * currentImageInfo.getHeight()
-            topImageInfo = summaryWithLargestImage.getImageInfo()
-            maxImageArea = topImageInfo.getWidth() * topImageInfo.getHeight()
-            if currentImageArea > maxImageArea:
-                summaryWithLargestImage = predictionSummary
+        for prediction_summary in prediction_summaries:
+            current_image_info = prediction_summary.get_image_info()
+            current_image_area = current_image_info.get_width() * current_image_info.get_height()
+            top_image_info = summary_with_largest_image.get_image_info()
+            max_image_area = top_image_info.get_width() * top_image_info.get_height()
+            if current_image_area > max_image_area:
+                summary_with_largest_image = prediction_summary
 
-        return summaryWithLargestImage
+        return summary_with_largest_image
 
     # Generates "tie-breaker" out of subimage predictions if there isn't sufficient confidence on the top prediction
     # for the full image.
     # TODO: How exactly should that threshold be determined...?  For now, using one that works for two classes.  Definitely revisit
     @staticmethod
-    def __generateFinalPredictionSummary(predictionSummaries: [PredictionsSummary]) -> PredictionsSummary:
-        predictionSummaries.sort(reverse=True)
-        return predictionSummaries[0]
+    def __generate_final_prediction_summary(prediction_summaries: [PredictionsSummary]) -> PredictionsSummary:
+        prediction_summaries.sort(reverse=True)
+        return prediction_summaries[0]
 
 

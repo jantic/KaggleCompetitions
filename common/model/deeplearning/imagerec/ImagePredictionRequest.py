@@ -3,29 +3,29 @@ from common.image.ImageInfo import ImageInfo
 
 class ImagePredictionRequest:
     @staticmethod
-    def generateInstances(imageInfos: [ImageInfo]) -> []:
-        groupedImageInfos = {}
+    def generate_instances(image_infos: [ImageInfo]) -> []:
+        grouped_image_infos = {}
 
-        for imageInfo in imageInfos:
-            testId = imageInfo.getImageNumber()
-            if not (testId in groupedImageInfos):
-                groupedImageInfos[testId] = []
-            groupedImageInfos[testId].append(imageInfo)
+        for image_info in image_infos:
+            test_id = image_info.get_image_number()
+            if not (test_id in grouped_image_infos):
+                grouped_image_infos[test_id] = []
+            grouped_image_infos[test_id].append(image_info)
 
         requests = []
 
-        for imageInfoGroup in groupedImageInfos.values():
-            request = ImagePredictionRequest(imageInfoGroup)
+        for image_info_group in grouped_image_infos.values():
+            request = ImagePredictionRequest(image_info_group)
             requests.append(request)
 
         return requests
 
-    def __init__(self, imageInfos: [ImageInfo]):
-        self.__imageInfos = imageInfos
-        self.__testId = imageInfos[0].getImageNumber()
+    def __init__(self, image_infos: [ImageInfo]):
+        self.__image_infos = image_infos
+        self.__test_id = image_infos[0].get_image_number()
 
-    def getImageInfos(self):
-        return self.__imageInfos
+    def get_image_infos(self):
+        return self.__image_infos
 
-    def getTestId(self):
-        return self.__testId
+    def get_test_id(self):
+        return self.__test_id

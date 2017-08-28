@@ -6,83 +6,83 @@ from sklearn.metrics import confusion_matrix
 
 
 # TODO:  Add visualizations for random correct and random incorrect
-# TODO:  Add confusion matrix visualizations
+# TODO:  Add visualization for dead neurons?
 
 class ImagePerformanceVisualizer:
     @staticmethod
-    def doVisualizations(testResultSummaries: [TestResultSummary], className: str, numTestsToVisualize: int, visualizeSuccess: bool,
-                         visualizeFailure: bool, visualizeLeastConfident: bool, visualizeConfusionMatrix: bool):
-        if visualizeSuccess:
-            ImagePerformanceVisualizer.__visualizeMostConfidentSuccessfulPredictions(testResultSummaries, className, numTestsToVisualize)
+    def do_visualizations(test_result_summaries: [TestResultSummary], class_name: str, num_tests_to_visualize: int, visualize_success: bool,
+                          visualize_failure: bool, visualize_least_confident: bool, visualize_confusion_matrix: bool):
+        if visualize_success:
+            ImagePerformanceVisualizer.__visualize_most_confident_successful_predictions(test_result_summaries, class_name, num_tests_to_visualize)
 
-        if visualizeFailure:
-            ImagePerformanceVisualizer.__visualizeMostConfidentFailingPredictions(testResultSummaries, className, numTestsToVisualize)
+        if visualize_failure:
+            ImagePerformanceVisualizer.__visualize_most_confident_failing_predictions(test_result_summaries, class_name, num_tests_to_visualize)
 
-        if visualizeLeastConfident:
-            ImagePerformanceVisualizer.__visualizeLeastConfidentPredictions(testResultSummaries, className, numTestsToVisualize)
+        if visualize_least_confident:
+            ImagePerformanceVisualizer.__visualize_least_confidentPredictions(test_result_summaries, class_name, num_tests_to_visualize)
 
-        if visualizeConfusionMatrix:
-            ImagePerformanceVisualizer.__visualizeConfusionMatrix(testResultSummaries)
+        if visualize_confusion_matrix:
+            ImagePerformanceVisualizer.__visualize_confusion_matrix(test_result_summaries)
 
         plt.show()
 
     @staticmethod
-    def __visualizeMostConfidentSuccessfulPredictions(testResultSummaries: [TestResultSummary], className: str, numTestsToVisualize: int):
-        if len(testResultSummaries) == 0 or numTestsToVisualize < 1:
+    def __visualize_most_confident_successful_predictions(test_result_summaries: [TestResultSummary], class_name: str, num_tests_to_visualize: int):
+        if len(test_result_summaries) == 0 or num_tests_to_visualize < 1:
             return
 
-        correct = [testResultSummary for testResultSummary in testResultSummaries if (testResultSummary.isCorrect() and
-                                                                                      testResultSummary.getActualClassName() == className)]
+        correct = [test_result_summary for test_result_summary in test_result_summaries if (test_result_summary.is_correct() and
+                                                                                            test_result_summary.get_actual_class_name() == class_name)]
 
-        sortedCorrect = sorted(correct, key=ImagePerformanceVisualizer.__confidenceSortKey, reverse=True)
+        sorted_correct = sorted(correct, key=ImagePerformanceVisualizer.__confidence_sort_key, reverse=True)
 
-        toDisplay = sortedCorrect[:numTestsToVisualize]
-        ImagePerformanceVisualizer.__prepareVisualizations(toDisplay, 'Most Confident Successful Predictions')
+        to_display = sorted_correct[:num_tests_to_visualize]
+        ImagePerformanceVisualizer.__prepare_visualizations(to_display, 'Most Confident Successful Predictions')
 
     @staticmethod
-    def __visualizeMostConfidentFailingPredictions(testResultSummaries: [TestResultSummary], className: str, numTestsToVisualize: int):
-        if len(testResultSummaries) == 0 or numTestsToVisualize < 1:
+    def __visualize_most_confident_failing_predictions(test_result_summaries: [TestResultSummary], class_name: str, num_tests_to_visualize: int):
+        if len(test_result_summaries) == 0 or num_tests_to_visualize < 1:
             return
 
-        failing = [testResultSummary for testResultSummary in testResultSummaries if (not testResultSummary.isCorrect() and
-                                                                                      testResultSummary.getActualClassName() == className)]
+        failing = [test_result_summary for test_result_summary in test_result_summaries if (not test_result_summary.is_correct() and
+                                                                                            test_result_summary.get_actual_class_name() == class_name)]
 
-        sortedFailing = sorted(failing, key=ImagePerformanceVisualizer.__confidenceSortKey, reverse=True)
+        sorted_failing = sorted(failing, key=ImagePerformanceVisualizer.__confidence_sort_key, reverse=True)
 
-        toDisplay = sortedFailing[:numTestsToVisualize]
-        ImagePerformanceVisualizer.__prepareVisualizations(toDisplay, 'Most Confident Failing Predictions')
+        to_display = sorted_failing[:num_tests_to_visualize]
+        ImagePerformanceVisualizer.__prepare_visualizations(to_display, 'Most Confident Failing Predictions')
 
     @staticmethod
-    def __visualizeLeastConfidentPredictions(testResultSummaries: [TestResultSummary], className: str, numTestsToVisualize: int):
-        if len(testResultSummaries) == 0 or numTestsToVisualize < 1:
+    def __visualize_least_confidentPredictions(test_result_summaries: [TestResultSummary], class_name: str, num_tests_to_visualize: int):
+        if len(test_result_summaries) == 0 or num_tests_to_visualize < 1:
             return
 
-        testResultsOfClass = [testResultSummary for testResultSummary in testResultSummaries if testResultSummary.getActualClassName() == className]
+        test_results_of_class = [test_result_summary for test_result_summary in test_result_summaries if test_result_summary.get_actual_class_name() == class_name]
 
-        sortedResults = sorted(testResultsOfClass, key=ImagePerformanceVisualizer.__confidenceSortKey, reverse=False)
-        toDisplay = sortedResults[:numTestsToVisualize]
-        ImagePerformanceVisualizer.__prepareVisualizations(toDisplay, 'Least Confident Predictions')
+        sorted_results = sorted(test_results_of_class, key=ImagePerformanceVisualizer.__confidence_sort_key, reverse=False)
+        to_display = sorted_results[:num_tests_to_visualize]
+        ImagePerformanceVisualizer.__prepare_visualizations(to_display, 'Least Confident Predictions')
 
     @staticmethod
-    def __visualizeConfusionMatrix(testResultSummaries: [TestResultSummary]):
-        if len(testResultSummaries) == 0:
+    def __visualize_confusion_matrix(test_result_summaries: [TestResultSummary]):
+        if len(test_result_summaries) == 0:
             return
 
-        actualClasses = []
-        predictedClasses = []
-        classesSet = set()
+        actual_classes = []
+        predicted_classes = []
+        classes_set = set()
 
-        for testResultSummary in testResultSummaries:
-            actualClasses.append(testResultSummary.getActualClassName())
-            predictedClasses.append(testResultSummary.getPredictionSummary().getTopPrediction().getClassName())
-            classesSet.add(testResultSummary.getActualClassName())
+        for test_result_summary in test_result_summaries:
+            actual_classes.append(test_result_summary.get_actual_class_name())
+            predicted_classes.append(test_result_summary.get_prediction_summary().get_top_prediction().get_class_name())
+            classes_set.add(test_result_summary.get_actual_class_name())
 
-        sortedClasses = sorted(classesSet)
-        confusionMatrix = confusion_matrix(actualClasses, predictedClasses)
-        ImagePerformanceVisualizer.__prepareConfusionMatrix(confusionMatrix, sortedClasses)
+        sorted_classes = sorted(classes_set)
+        confusion_matrix_result = confusion_matrix(actual_classes, predicted_classes)
+        ImagePerformanceVisualizer.__prepare_confusion_matrix(confusion_matrix_result, sorted_classes)
 
     @staticmethod
-    def __prepareConfusionMatrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.get_cmap(name="Blues")):
+    def __prepare_confusion_matrix(cm, classes, normalize=False, title='Confusion matrix', cmap=plt.cm.get_cmap(name="Blues")):
         """
         This function prints and plots the confusion matrix.
         Normalization can be applied by setting `normalize=True`.
@@ -108,10 +108,10 @@ class ImagePerformanceVisualizer:
         plt.xlabel('Predicted label')
 
     @staticmethod
-    def __prepareVisualizations(testResultSummaries: [TestResultSummary], summaryTitle: str):
-        images = [testResultSummary.getPredictionSummary().getImageInfo().getPilImage() for testResultSummary in testResultSummaries]
-        titles = [testResultSummary.getPredictionSummary().getTopPrediction().getClassName()
-                  + ': ' + str(testResultSummary.getPredictionSummary().getTopPrediction().getConfidence()) for testResultSummary in testResultSummaries]
+    def __prepare_visualizations(test_result_summaries: [TestResultSummary], summary_title: str):
+        images = [test_result_summary.get_prediction_summary().get_image_info().get_pil_image() for test_result_summary in test_result_summaries]
+        titles = [test_result_summary.get_prediction_summary().get_top_prediction().get_class_name()
+                  + ': ' + str(test_result_summary.get_prediction_summary().get_top_prediction().get_confidence()) for test_result_summary in test_result_summaries]
         figsize = (12, 6)
         rows = 1
         interp = False
@@ -121,15 +121,15 @@ class ImagePerformanceVisualizer:
             images = np.array(images).astype(np.uint8)
             if images.shape[-1] != 3:
                 images = images.transpose((0, 2, 3, 1))
-        figureWindow = plt.figure(figsize=figsize)
-        figureWindow.suptitle(summaryTitle, fontsize=20)
+        figure_window = plt.figure(figsize=figsize)
+        figure_window.suptitle(summary_title, fontsize=20)
         for i in range(len(images)):
-            sp = figureWindow.add_subplot(rows, len(images) // rows, i + 1)
+            sp = figure_window.add_subplot(rows, len(images) // rows, i + 1)
             sp.axis('Off')
             if titles is not None:
                 sp.set_title(titles[i], fontsize=16)
             plt.imshow(images[i], interpolation=None if interp else 'none')
 
     @staticmethod
-    def __confidenceSortKey(testResultSummary: TestResultSummary):
-        return testResultSummary.getPredictionSummary().getTopPrediction().getConfidence()
+    def __confidence_sort_key(test_result_summary: TestResultSummary):
+        return test_result_summary.get_prediction_summary().get_top_prediction().get_confidence()
