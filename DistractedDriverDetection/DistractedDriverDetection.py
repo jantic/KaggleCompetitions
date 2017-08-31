@@ -1,6 +1,8 @@
 from __future__ import division, print_function
 import numpy as np
 from importlib import reload
+
+from common.model.deeplearning.imagerec.FineTuneType import FineTuneType
 from common.utils import utils
 from common.model.deeplearning.imagerec.pretrained import vgg16
 from common.setup.DataSetup import DataSetup
@@ -10,13 +12,13 @@ from common.visualization.ImagePerformanceVisualizer import ImagePerformanceVisu
 from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImageClassifier
 
 run_main_test = False
-refine_training = False
+refine_training = True
 image_splitting = False
 initialize_data = False
 visualize_performance = True
 visualization_class = 'c5'
-use_sample = False
-number_of_epochs = 30
+use_sample = True
+number_of_epochs = 5
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
@@ -29,11 +31,13 @@ main_data_path = "data/main/"
 main_training_set_path = main_data_path + "train"
 main_validation_set_path = main_data_path + "valid"
 main_test_set_path = main_data_path + "test1"
+main_cache_path = "./cache/main/"
 
 sample_data_path = "data/sample/"
 sample_training_set_path = sample_data_path + "train"
 sample_validation_set_path = sample_data_path + "valid"
 sample_test_set_path = sample_data_path + "test1"
+sample_cache_path = "./cache/sample/"
 
 if initialize_data:
     DataSetup.establish_validation_data_if_needed(main_training_set_path, main_validation_set_path)
@@ -41,8 +45,10 @@ if initialize_data:
 
 training_set_path = sample_training_set_path if use_sample else main_training_set_path
 validation_set_path = sample_validation_set_path if use_sample else main_validation_set_path
+cache_directory = sample_cache_path if use_sample else main_cache_path
 
-vgg = Vgg16(True, training_set_path, training_batch_size, validation_set_path, validation_batch_size)
+vgg = Vgg16(load_weights_from_cache=True, training_images_path=training_set_path, training_batch_size=training_batch_size, validation_images_path=validation_set_path,
+            validation_batch_size=validation_batch_size, cache_directory=cache_directory, fineTuneType=FineTuneType.LAST_FULLY_CONNECTED_TO_OUTPUT)
 
 if refine_training:
     vgg.refine_training(number_of_epochs)
