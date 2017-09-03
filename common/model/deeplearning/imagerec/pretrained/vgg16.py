@@ -217,7 +217,7 @@ class Vgg16(IImageRecModel):
     def __get_latest_saved_weights_file_name(self):
         directory = self.CACHE_DIRECTORY
         if not os.path.isdir(directory):
-            os.mkdir(directory)
+            os.makedirs(directory)
 
         file_names = glob.glob(directory + "*.h5")
         highest_epoch = 0

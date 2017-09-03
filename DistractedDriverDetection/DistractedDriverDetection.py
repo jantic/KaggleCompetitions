@@ -13,7 +13,6 @@ from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImage
 run_main_test = False
 refine_training = True
 image_splitting = False
-initialize_data = False
 visualize_performance = True
 visualization_class = 'c5'
 use_sample = False
@@ -26,28 +25,30 @@ reload(utils)
 np.set_printoptions(precision=4, linewidth=100)
 reload(vgg16)
 
-main_data_path = "data/main/"
-main_training_set_path = main_data_path + "train"
-main_validation_set_path = main_data_path + "valid"
-main_test_set_path = main_data_path + "test1"
+data_directory="data/"
+source_data_directory= data_directory + "source/"
+
+main_directory = data_directory + "main/"
+main_training_set_path = main_directory + "train"
+main_validation_set_path = main_directory + "valid"
+main_test_set_path = main_directory + "test"
 main_cache_path = "./cache/main/"
 
-sample_data_path = "data/sample/"
-sample_training_set_path = sample_data_path + "train"
-sample_validation_set_path = sample_data_path + "valid"
-sample_test_set_path = sample_data_path + "test1"
+sample_directory = data_directory + "sample/"
+sample_training_set_path = sample_directory + "train"
+sample_validation_set_path = sample_directory + "valid"
+sample_test_set_path = sample_directory + "test1"
 sample_cache_path = "./cache/sample/"
 
-if initialize_data:
-    DataSetup.establish_validation_data_if_needed(main_training_set_path, main_validation_set_path)
-    DataSetup.establish_sample_data_if_needed(main_data_path, sample_data_path, sample_ratio=0.04)
+DataSetup.establish_working_data_directory_if_needed(source_training_directory=source_data_directory, destination_main_directory=main_directory,
+    destination_sample_directory=sample_directory, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.04)
 
 training_set_path = sample_training_set_path if use_sample else main_training_set_path
 validation_set_path = sample_validation_set_path if use_sample else main_validation_set_path
 cache_directory = sample_cache_path if use_sample else main_cache_path
 
 vgg = Vgg16(load_weights_from_cache=True, training_images_path=training_set_path, training_batch_size=training_batch_size, validation_images_path=validation_set_path,
-            validation_batch_size=validation_batch_size, cache_directory=cache_directory, num_dense_layers_to_retrain=4, fast_conv_cache_training=False, drop_out=0.5)
+            validation_batch_size=validation_batch_size, cache_directory=cache_directory, num_dense_layers_to_retrain=4, fast_conv_cache_training=True, drop_out=0.5)
 
 if refine_training:
     vgg.refine_training(number_of_epochs)

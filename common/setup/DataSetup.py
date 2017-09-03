@@ -3,72 +3,113 @@ from glob import glob
 from numpy.random import permutation
 import os
 
+from common.setup.DirectoryCreationMode import DirectoryCreationMode
+
 
 class DataSetup:
-    @staticmethod
-    def establish_validation_data_if_needed(training_directory: str, valid_directory: str, image_file_extension='jpg', valid_to_test_ratio=0.1):
-        training_directory = str.replace(training_directory, "/", "\\")
-        valid_directory = str.replace(valid_directory, "/", "\\")
 
-        if not os.path.exists(valid_directory):
-            os.mkdir(valid_directory)
+    #@staticmethod
+    #def establish_augmented_data_if_needed(source_training_directory: str, dest_training_directory: str,
+    #                                      image_file_extendsion='jpg', factor_to_augment=10):
+    #    source_training_directory=DataSetup.__cleanup_directory_path(source_training_directory)
 
-        validation_class_directory_names = glob(valid_directory + "/*/")
-
-        if len(validation_class_directory_names) > 0:
-            return
-
-        training_class_directory_paths = glob(training_directory + "/*/")
-
-        for training_class_directory_path in training_class_directory_paths:
-            new_valid_class_directory_path = str.replace(training_class_directory_path, training_directory, valid_directory)
-
-            if not os.path.exists(new_valid_class_directory_path):
-                os.mkdir(new_valid_class_directory_path)
-
-            training_images = glob(training_class_directory_path + "/*." + image_file_extension)
-            num_valid_images = int(round(valid_to_test_ratio * len(training_images), 0))
-            test_images_to_move = permutation(training_images)[:num_valid_images]
-
-            for test_image_to_move in test_images_to_move:
-                new_valid_image_path = str.replace(test_image_to_move, training_directory, valid_directory)
-                shutil.move(test_image_to_move, new_valid_image_path)
 
     @staticmethod
-    def establish_sample_data_if_needed(main_data_directory: str, sample_directory: str, image_file_extension='jpg', sample_ratio=0.02):
-        main_data_directory = str.replace(main_data_directory, "/", "\\")
-        sample_directory = str.replace(sample_directory, "/", "\\")
+    def establish_working_data_directory_if_needed(source_training_directory: str, destination_main_directory: str,
+                                                   destination_sample_directory: str, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.02):
+        source_training_directory=DataSetup.__cleanup_directory_path(source_training_directory)
+        destination_directory=DataSetup.__cleanup_directory_path(destination_main_directory)
+        DataSetup.__establish_directory_if_needed(destination_directory)
 
-        if not os.path.exists(sample_directory):
-            os.mkdir(sample_directory)
-
-        sample_directoryNames = glob(sample_directory + "/*/")
-
-        if len(sample_directoryNames) > 0:
+        if not DataSetup.__need_to_establish_working_data_directory(destination_directory):
             return
 
-        main_data_directoryPaths = glob(main_data_directory + "/*/")
+        destination_training_data_directory = destination_directory + '/test/'
+        destination_validation_data_directory = destination_directory + '/valid/'
 
-        for main_data_directoryPath in main_data_directoryPaths:
-            new_sample_directory_path = str.replace(main_data_directoryPath, main_data_directory, sample_directory)
+        DataSetup.__establish_test_data(source_training_directory=source_training_directory, destination_training_directory=destination_directory,
+                                        image_file_extension=image_file_extension)
 
-            if not os.path.exists(new_sample_directory_path):
-                os.mkdir(new_sample_directory_path)
+        DataSetup.__establish_validation_data(training_directory=destination_training_data_directory,valid_directory=destination_validation_data_directory,
+                                              image_file_extension=image_file_extension, valid_to_test_ratio=valid_to_test_ratio)
 
-            main_sub_directory_paths = glob(main_data_directoryPath + "/*/")
+        DataSetup.__establish_sample_data(main_data_directory=destination_main_directory, sample_directory=destination_sample_directory,
+                                          image_file_extension=image_file_extension, sample_ratio=sample_ratio)
 
-            for main_sub_directory_path in main_sub_directory_paths:
-                new_sample_sub_directory_path = str.replace(main_sub_directory_path, main_data_directory, sample_directory)
+    @staticmethod
+    def __establish_test_data(source_training_directory: str, destination_training_directory: str, image_file_extension: str):
+        source_training_directory=DataSetup.__cleanup_directory_path(source_training_directory)
+        destination_training_directory=DataSetup.__cleanup_directory_path(destination_training_directory)
+        DataSetup.__establish_directory_if_needed(destination_training_directory)
 
-                if not os.path.exists(new_sample_sub_directory_path):
-                    os.mkdir(new_sample_sub_directory_path)
+        source_data_directoryPaths = DataSetup.__get_sub_directories(source_training_directory)
 
-                source_images = glob(main_sub_directory_path + "/*." + image_file_extension)
-                num_sample_images = int(round(sample_ratio * len(source_images), 0))
-                source_images_to_copy = permutation(source_images)[:num_sample_images]
+        for source_data_directory_path in source_data_directoryPaths:
+            new_directory_path = str.replace(source_data_directory_path, source_training_directory, destination_training_directory)
+            DataSetup.__establish_directory_if_needed(new_directory_path)
+            DataSetup.__create_new_images_directory(source_data_directory_path, new_directory_path, image_file_extension, 1.0,
+                                                    DirectoryCreationMode.COPY)
 
-                for source_image_to_copy in source_images_to_copy:
-                    new_sample_image_path = str.replace(source_image_to_copy, main_data_directory, sample_directory)
-                    shutil.copy(source_image_to_copy, new_sample_image_path)
 
+    @staticmethod
+    def __need_to_establish_working_data_directory(destination_directory):
+        destination_sub_directory_names = DataSetup.__get_sub_directories(destination_directory)
+        return len(destination_sub_directory_names) == 0
+
+    @staticmethod
+    def __establish_validation_data(training_directory: str, valid_directory: str, image_file_extension: str, valid_to_test_ratio: float):
+        training_directory=DataSetup.__cleanup_directory_path(training_directory)
+        valid_directory=DataSetup.__cleanup_directory_path(valid_directory)
+        DataSetup.__establish_directory_if_needed(valid_directory)
+        DataSetup.__create_new_images_directory(training_directory, valid_directory, image_file_extension, valid_to_test_ratio, DirectoryCreationMode.MOVE)
+
+
+    @staticmethod
+    def __establish_sample_data(main_data_directory: str, sample_directory: str, image_file_extension: str, sample_ratio: float):
+        main_data_directory=DataSetup.__cleanup_directory_path(main_data_directory)
+        sample_directory=DataSetup.__cleanup_directory_path(sample_directory)
+        DataSetup.__establish_directory_if_needed(sample_directory)
+        main_data_directoryPaths = DataSetup.__get_sub_directories(main_data_directory)
+
+        for main_data_directory_path in main_data_directoryPaths:
+            new_sample_directory_path = str.replace(main_data_directory_path, main_data_directory, sample_directory)
+            DataSetup.__establish_directory_if_needed(new_sample_directory_path)
+            DataSetup.__create_new_images_directory(main_data_directory_path, new_sample_directory_path, image_file_extension, sample_ratio,
+                                                    DirectoryCreationMode.COPY)
+
+    @staticmethod
+    def __create_new_images_directory(source_dir: str, destination_dir: str, image_file_extension: str, ratio_to_copy: float,
+            creation_mode: DirectoryCreationMode):
+        source_sub_directories = DataSetup.__get_sub_directories(source_dir)
+
+        for source_sub_directory in source_sub_directories:
+            destination_sub_directory = str.replace(source_sub_directory, source_dir, destination_dir)
+            DataSetup.__establish_directory_if_needed(destination_sub_directory)
+            source_images = DataSetup.__get_files_with_extension(source_sub_directory, image_file_extension)
+            num_images_to_copy = int(round(ratio_to_copy * len(source_images), 0))
+            images_to_move_or_copy = permutation(source_images)[:num_images_to_copy]
+
+            for source_image_to_move_or_copy in images_to_move_or_copy:
+                new_image_path = str.replace(source_image_to_move_or_copy, source_dir, destination_dir)
+                if creation_mode == DirectoryCreationMode.MOVE:
+                    shutil.move(source_image_to_move_or_copy, new_image_path)
+                else:
+                    shutil.copy(source_image_to_move_or_copy, new_image_path)
+
+    @staticmethod
+    def __cleanup_directory_path(directory: str):
+        return str.replace(directory, "/", "\\")
+
+    @staticmethod
+    def __get_sub_directories(directory: str):
+        return glob(directory + "/*/")
+
+    @staticmethod
+    def __get_files_with_extension(directory: str, extension: str):
+        return glob(directory + "/*." + extension)
+
+    @staticmethod
+    def __establish_directory_if_needed(directory: str):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
