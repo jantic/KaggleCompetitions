@@ -11,7 +11,7 @@ from common.visualization.ImagePerformanceVisualizer import ImagePerformanceVisu
 from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImageClassifier
 import time
 
-run_main_test = False
+run_main_test = True
 refine_training = True
 image_splitting = False
 visualize_performance = True
@@ -27,7 +27,7 @@ np.set_printoptions(precision=4, linewidth=100)
 reload(vgg16)
 
 data_directory="data/"
-source_data_directory= data_directory + "source/"
+source_directory= data_directory + "source/"
 
 main_directory = data_directory + "main/"
 main_training_set_path = main_directory + "train"
@@ -42,8 +42,8 @@ sample_test_set_path = sample_directory + "test1"
 sample_cache_path = "./cache/sample/"
 
 
-DataSetup.establish_working_data_directory_if_needed(source_training_directory=source_data_directory, destination_main_directory=main_directory,
-    destination_sample_directory=sample_directory, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.04)
+DataSetup.establish_working_data_directory_if_needed(source_directory=source_directory, destination_directory=main_directory,
+    destination_sample_directory=sample_directory, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.04,train_augment_factor=5)
 
 training_set_path = sample_training_set_path if use_sample else main_training_set_path
 validation_set_path = sample_validation_set_path if use_sample else main_validation_set_path
