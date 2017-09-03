@@ -7,45 +7,48 @@ import re
 
 import keras
 import numpy as np
+from keras import layers
 from keras.layers.convolutional import MaxPooling2D, ZeroPadding2D, Conv2D
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.models import Sequential
-from keras.models import load_model
 from keras.optimizers import Adam
 from keras.optimizers import RMSprop
 from keras.preprocessing import image
 from keras.preprocessing.image import DirectoryIterator
 from keras.utils.data_utils import get_file
-from keras import layers
-
-
+from keras.models import load_model
+from common.utils.utils import *
 from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import BatchImagePredictionRequestInfo
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
 from common.model.deeplearning.imagerec.ImagePredictionRequest import ImagePredictionRequest
 from common.model.deeplearning.imagerec.ImagePredictionResult import ImagePredictionResult
-from common.model.deeplearning.imagerec.FineTuneType import FineTuneType
 
 
 class Vgg16(IImageRecModel):
     """The VGG 16 Imagenet model"""
 
     def __init__(self, load_weights_from_cache: bool, training_images_path: str, training_batch_size: int, validation_images_path: str,
-                 validation_batch_size: int, cache_directory: str, fineTuneType=FineTuneType.OUTPUT_ONLY):
+                 validation_batch_size: int, cache_directory: str, num_dense_layers_to_retrain: int, fast_conv_cache_training=True,
+                 drop_out=0.0):
+        self.FAST_CONV_CACHE_TRAINING = fast_conv_cache_training
+        shuffle = (not fast_conv_cache_training)
         self.TRAINING_BATCH_SIZE = training_batch_size
-        self.TRAINING_BATCHES = self.__get_batches(training_images_path, batch_size=training_batch_size)
-        self.VALIDATION_BATCHES = self.__get_batches(validation_images_path, batch_size=validation_batch_size)
+        self.TRAINING_BATCHES = self.__get_batches(training_images_path, shuffle=shuffle, batch_size=training_batch_size)
+        self.VALIDATION_BATCHES = self.__get_batches(validation_images_path, shuffle=shuffle, batch_size=validation_batch_size)
         self.VGG_MEAN = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3, 1, 1))
         self.ORIGINAL_MODEL_WEIGHTS_URL = 'http://files.fast.ai/models/'
         self.CACHE_DIRECTORY = cache_directory
+        self.CONV_TRAIN_CACHE_PATH = self.CACHE_DIRECTORY + 'train_convlayer_features.bc'
+        self.CONV_VALID_CACHE_PATH = self.CACHE_DIRECTORY + 'valid_convlayer_features.bc'
         self.LOAD_WEIGHTS_FROM_CACHE = load_weights_from_cache
-        self.LATEST_SAVED_WEIGHTS_FILENAME = self.__get_latest_saved_weights_file_name()
-        self.LATEST_SAVED_EPOCH = self.__determine_epoch_num_from_weights_file_name(self.LATEST_SAVED_WEIGHTS_FILENAME)
-        self.FINE_TUNE_TYPE = fineTuneType
-        self.__create()
-        self.__establish_classes()
+        self.NUM_DENSE_LAYERS_TO_RETRAIN = num_dense_layers_to_retrain
+        self.DROP_OUT = drop_out
+        self.__initialize_model()
 
     def refine_training(self, num_epochs: int):
-        initial_epoch = max(self.LATEST_SAVED_EPOCH, 0) if self.LOAD_WEIGHTS_FROM_CACHE else 0
+        latest_saved_filename = self.__get_latest_saved_weights_file_name()
+        latest_saved_epoch = self.__determine_epoch_num_from_weights_file_name(latest_saved_filename)
+        initial_epoch = max(latest_saved_epoch, 0) if self.__can_load_weights_from_cache() else 0
         self.__fit(self.TRAINING_BATCHES, self.VALIDATION_BATCHES, nb_epoch=num_epochs, initial_epoch=initial_epoch)
 
     def predict(self, image_prediction_requests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]:
@@ -70,52 +73,146 @@ class Vgg16(IImageRecModel):
             classes[self.TRAINING_BATCHES.class_indices[c]] = c
         self.classes = classes
 
-    def __generateFreshKerasModel(self, fineTuneType) -> Sequential:
-        model = Sequential()
-        model.add(Lambda(self.__vgg_preprocess, input_shape=(3, self.get_image_width(), self.get_image_height()),
-                         output_shape=(3, self.get_image_width(), self.get_image_height())))
-        Vgg16.__conv_block(model, 2, 64)
-        Vgg16.__conv_block(model, 2, 128)
-        Vgg16.__conv_block(model, 3, 256)
-        Vgg16.__conv_block(model, 3, 512)
-        Vgg16.__conv_block(model, 3, 512)
-        model.add(Flatten())
-        Vgg16.__fc_block(model)
-        Vgg16.__fc_block(model)
-        model.add(Dense(1000, activation='softmax'))
-        model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16.h5', cache_subdir='models'))
+    def __get_convolutional_layers(self) -> [Sequential]:
+        conv_layers = [Lambda(self.__vgg_preprocess, input_shape=(3, self.get_image_width(), self.get_image_height()),
+                              output_shape=(3, self.get_image_width(), self.get_image_height()))]
+        conv_layers.extend(self.__generate_single_conv_block_layers(2, 64))
+        conv_layers.extend(self.__generate_single_conv_block_layers(2, 128))
+        conv_layers.extend(self.__generate_single_conv_block_layers(3, 256))
+        conv_layers.extend(self.__generate_single_conv_block_layers(3, 512))
+        conv_layers.extend(self.__generate_single_conv_block_layers(3, 512))
+        return conv_layers
 
-        self.__configureLayersForFineTuneType(model, fineTuneType=fineTuneType)
-        Vgg16.__compile(model)
+
+    def __get_dense_layers(self, num_classes: int, drop_out: float) -> [Sequential]:
+        return [
+            Flatten(),
+            Dense(4096, activation='relu'),
+            Dropout(drop_out),
+            Dense(4096, activation='relu'),
+            Dropout(drop_out),
+            Dense(num_classes, activation='softmax')
+        ]
+
+    def __generate_original_model(self) -> Sequential:
+        model = Sequential()
+        conv_layers = self.__get_convolutional_layers()
+
+        for conv_layer in conv_layers:
+            model.add(conv_layer)
+
+        dense_layers = self.__get_dense_layers(num_classes=1000, drop_out=self.DROP_OUT)
+
+        for dense_layer in dense_layers:
+            model.add(dense_layer)
+
+        model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16.h5', cache_subdir='models'))
         return model
 
-    def __configureLayersForFineTuneType(self, model: Sequential, fineTuneType: FineTuneType):
+    def __initialize_model(self):
+        use_cached_model = self.__can_load_weights_from_cache()
+
+        if use_cached_model:
+            self.source_model = self.__load_cached_model()
+        else:
+            self.source_model = self.__generate_original_model()
+
+        self.source_model.summary()
+
+        source_layers = self.source_model.layers
+        last_conv_idx = self.__get_last_conv_index(source_layers)
+        source_conv_layers = source_layers[:last_conv_idx + 1]
+        source_dense_layers = source_layers[last_conv_idx + 1:]
+        self.conv_model_portion = Sequential()
+
+        for layer in source_conv_layers:
+            self.conv_model_portion.add(layer)
+            layer.trainable = False
+
         num_classes = self.TRAINING_BATCHES.num_class
-        model.pop()
-        model.add(Dense(num_classes, activation='softmax'))
-        maxResetLayerIndex = self.__getMaxResetLayerIndexForFinetuneType(fineTuneType)
-        numLayers = len(model.layers)
+        self.dense_model_portion = self.__generate_dense_finetuning_model(num_classes=num_classes, source_conv_layers=source_conv_layers,
+                                                                          source_dense_layers=source_dense_layers, using_cached_model=use_cached_model)
+        self.model = Sequential()
 
-        for index in range(numLayers - maxResetLayerIndex):
-            model.layers[index].trainable=False
+        for layer in self.conv_model_portion.layers:
+            self.model.add(layer)
+            layer.trainable = False
 
+        dense_layer_count = 0
+        self.dense_model_portion.layers.reverse()
 
+        for layer in self.dense_model_portion.layers:
+            if Vgg16.__is_dense_layer(layer):
+                dense_layer_count = dense_layer_count + 1
 
-    def __getMaxResetLayerIndexForFinetuneType(self, fineTuneType: FineTuneType):
-        if fineTuneType == FineTuneType.NONE:
-            return 0
+            if dense_layer_count <= self.NUM_DENSE_LAYERS_TO_RETRAIN:
+                layer.trainable = True
+            else:
+                layer.trainable = False
 
-        if fineTuneType == FineTuneType.OUTPUT_ONLY:
-            return 1
+        self.dense_model_portion.layers.reverse()
 
-        if fineTuneType == FineTuneType.LAST_FULLY_CONNECTED_TO_OUTPUT:
-            return 3
+        for layer in self.dense_model_portion.layers:
+            self.model.add(layer)
 
-        if fineTuneType == FineTuneType.ALL_FULLY_CONNECTED_TO_OUTPUT:
-            return 5
+        self.model.summary()
+        Vgg16.__compile(self.model)
+        self.__establish_classes()
 
-        if fineTuneType == FineTuneType.LAST_CONV_TO_OUTPUT:
-            return 8
+    @staticmethod
+    def __is_dense_layer(layer: Sequential)->bool:
+        return type(layer) is Dense
+
+    @staticmethod
+    def __is_conv_layer(layer: Sequential)->bool:
+        return type(layer) is Convolution2D or type(layer) is Conv2D
+
+    def __load_cached_model(self):
+        saved_weights_file_name = self.__get_latest_saved_weights_file_name()
+
+        original_model = self.__generate_original_model()
+        original_layers = original_model.layers
+        last_conv_idx_original = self.__get_last_conv_index(original_layers)
+        original_conv_layers = original_layers[:last_conv_idx_original + 1]
+        model = Sequential()
+
+        for layer in original_conv_layers:
+            model.add(layer)
+
+        cached_model = load_model(saved_weights_file_name, custom_objects={'__vgg_preprocess': self.__vgg_preprocess})
+        cached_model.load_weights(saved_weights_file_name, True)
+        cached_layers = cached_model.layers
+        last_conv_idx_cached = self.__get_last_conv_index(cached_layers)
+        cached_dense_layers = cached_layers[last_conv_idx_cached + 1:]
+
+        for layer in cached_dense_layers:
+            model.add(layer)
+
+        return model
+
+    def __get_last_conv_index(self, source_layers):
+        conv_layers = [index for index, layer in enumerate(source_layers) if (Vgg16.__is_conv_layer(layer))]
+        if len(conv_layers) == 0: return -1
+        last_conv_idx = conv_layers[-1]
+        return last_conv_idx
+
+    # TODO:  Make dropout configurable
+    def __generate_dense_finetuning_model(self, num_classes: int, source_conv_layers: [Sequential],
+                    source_dense_layers: [Sequential], using_cached_model: bool) -> Sequential:
+        dense_layers = self.__get_dense_layers(num_classes=num_classes, drop_out=self.DROP_OUT)
+        model = Sequential()
+        model.add(MaxPooling2D(input_shape=source_conv_layers[-1].output_shape[1:]))
+
+        for layer in dense_layers:
+            model.add(layer)
+
+        for layer1, layer2 in zip(model.layers, source_dense_layers):
+            index = source_dense_layers.index(layer2)
+            if index < len(source_dense_layers) - 1 or using_cached_model:
+                layer1.set_weights(layer2.get_weights())
+
+        Vgg16.__compile(model)
+        return model
 
     def __get_latest_saved_weights_file_name(self):
         directory = self.CACHE_DIRECTORY
@@ -126,46 +223,40 @@ class Vgg16(IImageRecModel):
         highest_epoch = 0
         highest_epoch_file = ""
 
-        for fileName in file_names:
-            epoch = self.__determine_epoch_num_from_weights_file_name(fileName)
+        for file_name in file_names:
+            epoch = self.__determine_epoch_num_from_weights_file_name(file_name)
             if epoch > highest_epoch:
                 highest_epoch = epoch
-                highest_epoch_file = fileName
+                highest_epoch_file = file_name
 
         return highest_epoch_file
 
     @staticmethod
-    def __determine_epoch_num_from_weights_file_name(fileName):
-        match_obj = re.match(r'(.*?weights\.)(\d+)(-)(.*?)(-)(.*?)(\.h5)', fileName, re.M | re.I)
+    def __determine_epoch_num_from_weights_file_name(file_name: str):
+        match_obj = re.match(r'(.*?weights\.)(\d+)(-)(.*?)(-)(.*?)(\.h5)', file_name, re.M | re.I)
         if match_obj:
             return int(match_obj.group(2)) + 1
         return 0
 
     @staticmethod
-    def __conv_block(model: Sequential, layers, filters):
-        for i in range(layers):
-            model.add(ZeroPadding2D((1, 1)))
-            model.add(Conv2D(filters, kernel_size=(3, 3), activation='relu'))
-        model.add(MaxPooling2D((2, 2), strides=(2, 2)))
+    def __generate_single_conv_block_layers(num_layers: int, filters):
+        conv_layers = []
 
-    @staticmethod
-    def __fc_block(model: Sequential):
-        model.add(Dense(4096, activation='relu'))
-        model.add(Dropout(0.5))
+        for i in range(num_layers):
+            conv_layers.append(ZeroPadding2D((1, 1)))
+            conv_layers.append(Conv2D(filters, kernel_size=(3, 3), activation='relu'))
+
+        conv_layers.append(MaxPooling2D((2, 2), strides=(2, 2)))
+        return conv_layers
 
     def __vgg_preprocess(self, x):
         x = x - self.VGG_MEAN
         return x[:, ::-1]  # reverse axis rgb->bgr
 
     def __can_load_weights_from_cache(self):
-        return self.LOAD_WEIGHTS_FROM_CACHE and self.LATEST_SAVED_EPOCH > 0
-
-    def __create(self):
-        if self.__can_load_weights_from_cache():
-            self.model = load_model(self.LATEST_SAVED_WEIGHTS_FILENAME, custom_objects={'__vgg_preprocess': self.__vgg_preprocess})
-            self.model.load_weights(self.LATEST_SAVED_WEIGHTS_FILENAME, True)
-        else:
-            self.model = self.__generateFreshKerasModel(fineTuneType=self.FINE_TUNE_TYPE)
+        latest_file_name = self.__get_latest_saved_weights_file_name()
+        latest_saved_epoch = self.__determine_epoch_num_from_weights_file_name(latest_file_name)
+        return self.LOAD_WEIGHTS_FROM_CACHE and latest_saved_epoch > 0
 
     def __get_batches(self, path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical') -> DirectoryIterator:
         return gen.flow_from_directory(path, target_size=(self.get_image_width(), self.get_image_height()), color_mode='rgb',
@@ -173,7 +264,7 @@ class Vgg16(IImageRecModel):
 
     @staticmethod
     def __compile(model: Sequential):
-        #optimizer = Adam(lr=0.001)
+        # optimizer = Adam(lr=0.001)
         optimizer = RMSprop(lr=0.00001, rho=0.7)
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
@@ -183,9 +274,40 @@ class Vgg16(IImageRecModel):
         model_checkpoint = keras.callbacks.ModelCheckpoint('./' + self.CACHE_DIRECTORY + '/weights.{epoch:02d}-{val_loss:.4f}-{val_acc:.4f}.h5', monitor='val_loss', verbose=0,
                                                            save_best_only=False,
                                                            save_weights_only=False, mode='auto', period=1)
-        self.model.fit_generator(batches, steps_per_epoch=int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
-                                 validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples / self.TRAINING_BATCH_SIZE)),
-                                 callbacks=[early_stopping, model_checkpoint])
+
+        # OPTIMIZATION:  First, train the conv model on features, save those, then train fc layer for much faster feedback
+        # Requires static images
+        if self.FAST_CONV_CACHE_TRAINING:
+            self.__cache_conv_features_output(batches=batches, val_batches=val_batches)
+            val_classes = val_batches.classes
+            trn_classes = batches.classes
+            val_labels = onehot(val_classes)
+            trn_labels = onehot(trn_classes)
+            trn_features = load_array(self.CONV_TRAIN_CACHE_PATH)
+            val_features = load_array(self.CONV_VALID_CACHE_PATH)
+
+            self.dense_model_portion.fit(trn_features, trn_labels, epochs=nb_epoch, initial_epoch=initial_epoch,
+                                         batch_size=self.TRAINING_BATCH_SIZE, validation_data=(val_features, val_labels), callbacks=[early_stopping, model_checkpoint])
+        else:
+            self.model.fit_generator(batches, steps_per_epoch=int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
+                                     validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples / self.TRAINING_BATCH_SIZE)),
+                                     callbacks=[early_stopping, model_checkpoint])
+
+
+    # TODO:  Make this smarter
+    def __cache_conv_features_output(self, batches, val_batches):
+        if self.__file_exists(self.CONV_TRAIN_CACHE_PATH) and self.__file_exists(self.CONV_VALID_CACHE_PATH):
+            return
+
+        steps_per_epoch = int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE))
+        validation_steps = int(np.ceil(val_batches.samples / self.TRAINING_BATCH_SIZE))
+        val_features = self.conv_model_portion.predict_generator(val_batches, validation_steps)
+        trn_features = self.conv_model_portion.predict_generator(batches, steps_per_epoch)
+        save_array(self.CONV_TRAIN_CACHE_PATH, trn_features)
+        save_array(self.CONV_VALID_CACHE_PATH, val_features)
+
+    def __file_exists(self, file_path: str):
+        return os.path.exists(file_path)
 
     def __test(self, path, batch_size=8):
         # noinspection PyTypeChecker

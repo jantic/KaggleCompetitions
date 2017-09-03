@@ -11,7 +11,7 @@ class ImageInfo:
     @staticmethod
     def load_image_infos_from_directory(images_directory_path: str):
         file_extension = "jpg"
-        images_locator = os.path.join(images_directory_path, "*." + file_extension)
+        images_locator = os.path.join(images_directory_path+"/**", "*." + file_extension)
         image_paths = glob.glob(images_locator, recursive=True)
         image_infos = []
 

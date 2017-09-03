@@ -185,10 +185,10 @@ def get_classes(path):
 
 
 def split_at(model, layer_type):
-    layers = model.layers
-    layer_idx = [index for index, layer in enumerate(layers)
+    model_layers = model.layers
+    layer_idx = [index for index, layer in enumerate(model_layers)
                  if type(layer) is layer_type][-1]
-    return layers[:layer_idx + 1], layers[layer_idx + 1:]
+    return model_layers[:layer_idx + 1], model_layers[layer_idx + 1:]
 
 
 class MixIterator(object):
