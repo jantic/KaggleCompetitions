@@ -1,1 +1,0 @@
-{"cparams": {"quantize": 0, "cname": "lz4", "clevel": 5, "shuffle": 1}, "chunklen": 2, "dtype": "float32", "expectedlen": 2000, "dflt": 0.0}

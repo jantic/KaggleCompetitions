@@ -11,18 +11,18 @@ class DataSetup:
     def establish_working_data_directory_if_needed(source_directory: str, destination_directory: str,
                 destination_sample_directory: str, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.02,
                 train_augment_factor=0):
-        source_training_directory=DataSetup.__cleanup_directory_path(source_directory)
+        source_directory=DataSetup.__cleanup_directory_path(source_directory)
         destination_directory=DataSetup.__cleanup_directory_path(destination_directory)
         DataSetup.__establish_directory_if_needed(destination_directory)
 
         if not DataSetup.__need_to_establish_working_data_directory(destination_directory):
             return
 
-        destination_training_data_directory = destination_directory + '/test/'
+        destination_training_data_directory = destination_directory + '/train/'
         destination_validation_data_directory = destination_directory + '/valid/'
 
         DataSetup.__establish_training_and_test_data(source_directory=source_directory, destination_directory=destination_directory,
-                                        image_file_extension=image_file_extension, train_augment_factor=train_augment_factor)
+                                        image_file_extension=image_file_extension)
 
         DataSetup.__establish_validation_data(training_directory=destination_training_data_directory,valid_directory=destination_validation_data_directory,
                                               image_file_extension=image_file_extension, valid_to_test_ratio=valid_to_test_ratio)
@@ -30,22 +30,35 @@ class DataSetup:
         DataSetup.__establish_sample_data(main_data_directory=destination_directory, sample_directory=destination_sample_directory,
                                           image_file_extension=image_file_extension, sample_ratio=sample_ratio)
 
+        DataSetup.__augment_training_data_if_applicable(training_directory=destination_training_data_directory,
+                                                        train_augment_factor=train_augment_factor, image_file_extension=image_file_extension)
+
+
     @staticmethod
-    def __establish_training_and_test_data(source_directory: str, destination_directory: str, image_file_extension: str, train_augment_factor: int):
+    def __augment_training_data_if_applicable(training_directory: str, train_augment_factor: int, image_file_extension: str):
+        if train_augment_factor <= 0:
+            return
+
+        sub_directory_paths = DataSetup.__get_sub_directories(training_directory)
+
+        for sub_directory_path in sub_directory_paths:
+            source_images = DataSetup.__get_files_with_extension(sub_directory_path, image_file_extension)
+            for source_image in source_images:
+                DataSetup.__add_augmented_images(source_image, train_augment_factor)
+
+
+    @staticmethod
+    def __establish_training_and_test_data(source_directory: str, destination_directory: str, image_file_extension: str):
         source_directory=DataSetup.__cleanup_directory_path(source_directory)
         destination_directory=DataSetup.__cleanup_directory_path(destination_directory)
         DataSetup.__establish_directory_if_needed(destination_directory)
         source_data_directoryPaths = DataSetup.__get_sub_directories(source_directory)
-        test_augment_factor = 0
 
         for source_data_directory_path in source_data_directoryPaths:
             new_directory_path = str.replace(source_data_directory_path, source_directory, destination_directory)
             DataSetup.__establish_directory_if_needed(new_directory_path)
-            last_directory_name = os.path.basename(os.path.normpath(new_directory_path))
-            is_test_directory = last_directory_name.startswith('test')
-            augment_factor = 0 if is_test_directory else train_augment_factor
             DataSetup.__create_new_images_directory(source_data_directory_path, new_directory_path,
-                    image_file_extension, 1.0, ImagesDirectoryCreationMode.COPY, augment_factor=augment_factor)
+                    image_file_extension, 1.0, ImagesDirectoryCreationMode.COPY)
 
 
     @staticmethod
@@ -76,7 +89,7 @@ class DataSetup:
 
     @staticmethod
     def __create_new_images_directory(source_dir: str, destination_dir: str, image_file_extension: str, ratio_to_copy: float,
-                                      creation_mode: ImagesDirectoryCreationMode, augment_factor=0):
+                                      creation_mode: ImagesDirectoryCreationMode):
         source_sub_directories = DataSetup.__get_sub_directories(source_dir)
 
         for source_sub_directory in source_sub_directories:
@@ -92,8 +105,6 @@ class DataSetup:
                     shutil.move(source_image_to_move_or_copy, new_image_path)
                 else:
                     shutil.copy(source_image_to_move_or_copy, new_image_path)
-                    if augment_factor > 0:
-                        DataSetup.__add_augmented_images(new_image_path, augment_factor)
 
     @staticmethod
     def __add_augmented_images(original_image_path: str, augment_factor: int):

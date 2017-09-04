@@ -17,7 +17,7 @@ image_splitting = False
 visualize_performance = True
 visualization_class = 'dogs'
 use_sample = False
-number_of_epochs = 3
+number_of_epochs = 10
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
@@ -50,7 +50,7 @@ validation_set_path = sample_validation_set_path if use_sample else main_validat
 cache_directory = sample_cache_path if use_sample else main_cache_path
 
 vgg = Vgg16(load_weights_from_cache=True, training_images_path=training_set_path, training_batch_size=training_batch_size, validation_images_path=validation_set_path,
-            validation_batch_size=validation_batch_size, cache_directory=cache_directory, num_dense_layers_to_retrain=4, fast_conv_cache_training=True, drop_out=0.5)
+            validation_batch_size=validation_batch_size, cache_directory=cache_directory, num_dense_layers_to_retrain=4, fast_conv_cache_training=False, drop_out=0.5)
 
 if refine_training:
     vgg.refine_training(number_of_epochs)
