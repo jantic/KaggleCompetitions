@@ -53,3 +53,9 @@ data
 *.pstats
 CatsVsDogsRedux/ProfilerResults.xlsx
 *.KILLER
+CatsVsDogsRedux/cache/main/convcache/training _convlayer_labels_0_.bc/meta/sizes
+CatsVsDogsRedux/cache/main/convcache/training _convlayer_labels_0_.bc/meta/storage
+CatsVsDogsRedux/cache/main/convcache/training _convlayer_labels_0_.bc/__attrs__
+CatsVsDogsRedux/cache/main/convcache/training _convlayer_labels_10_.bc/meta/sizes
+CatsVsDogsRedux/cache/main/convcache/training _convlayer_labels_10_.bc/meta/storage
+/CatsVsDogsRedux/cache

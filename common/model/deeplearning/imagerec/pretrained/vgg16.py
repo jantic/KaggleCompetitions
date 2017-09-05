@@ -14,9 +14,11 @@ from keras.models import Sequential
 from keras.optimizers import Adam
 from keras.optimizers import RMSprop
 from keras.preprocessing import image
-from keras.preprocessing.image import DirectoryIterator
+from keras.preprocessing.image import DirectoryIterator, Iterator
 from keras.utils.data_utils import get_file
 from keras.models import load_model
+
+from common.model.deeplearning.imagerec.optimization.ConvCacheIterator import ConvCacheIterator
 from common.utils.utils import *
 from common.model.deeplearning.imagerec.BatchImagePredictionRequestInfo import BatchImagePredictionRequestInfo
 from common.model.deeplearning.imagerec.IImageRecModel import IImageRecModel
@@ -31,10 +33,10 @@ class Vgg16(IImageRecModel):
                  validation_batch_size: int, cache_directory: str, num_dense_layers_to_retrain: int, fast_conv_cache_training=True,
                  drop_out=0.0):
         self.FAST_CONV_CACHE_TRAINING = fast_conv_cache_training
-        shuffle = (not fast_conv_cache_training)
         self.TRAINING_BATCH_SIZE = training_batch_size
-        self.TRAINING_BATCHES = self.__get_batches(training_images_path, shuffle=shuffle, batch_size=training_batch_size)
-        self.VALIDATION_BATCHES = self.__get_batches(validation_images_path, shuffle=shuffle, batch_size=validation_batch_size)
+        self.VALIDATION_BATCH_SIZE = validation_batch_size
+        self.TRAINING_BATCHES = self.__get_batches(training_images_path, shuffle=True, batch_size=training_batch_size)
+        self.VALIDATION_BATCHES = self.__get_batches(validation_images_path, shuffle=True, batch_size=validation_batch_size)
         self.VGG_MEAN = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3, 1, 1))
         self.ORIGINAL_MODEL_WEIGHTS_URL = 'http://files.fast.ai/models/'
         self.CACHE_DIRECTORY = cache_directory
@@ -278,36 +280,22 @@ class Vgg16(IImageRecModel):
         # OPTIMIZATION:  First, train the conv model on features, save those, then train fc layer for much faster feedback
         # Requires static images
         if self.FAST_CONV_CACHE_TRAINING:
-            self.__cache_conv_features_output(batches=batches, val_batches=val_batches)
-            val_classes = val_batches.classes
-            trn_classes = batches.classes
-            val_labels = onehot(val_classes)
-            trn_labels = onehot(trn_classes)
-            trn_features = load_array(self.CONV_TRAIN_CACHE_PATH)
-            val_features = load_array(self.CONV_VALID_CACHE_PATH)
+            conv_cache_directory = self.CACHE_DIRECTORY + '/convcache/'
 
-            self.dense_model_portion.fit(trn_features, trn_labels, epochs=nb_epoch, initial_epoch=initial_epoch,
-                                         batch_size=self.TRAINING_BATCH_SIZE, validation_data=(val_features, val_labels), callbacks=[early_stopping, model_checkpoint])
+            conv_cache_training_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=batches,
+                                                            batch_id = 'training', conv_model=self.conv_model_portion, batch_size=self.TRAINING_BATCH_SIZE)
+            conv_cache_validation_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=val_batches,
+                                                              batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE)
+
+            self.dense_model_portion.fit_generator(conv_cache_training_batches, steps_per_epoch=int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
+                                     validation_data=conv_cache_validation_batches, validation_steps=int(np.ceil(val_batches.samples / self.VALIDATION_BATCH_SIZE)),
+                                     callbacks=[early_stopping, model_checkpoint])
         else:
             self.model.fit_generator(batches, steps_per_epoch=int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
                                      validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples / self.TRAINING_BATCH_SIZE)),
                                      callbacks=[early_stopping, model_checkpoint])
 
 
-    # TODO:  Make this smarter
-    def __cache_conv_features_output(self, batches, val_batches):
-        if self.__file_exists(self.CONV_TRAIN_CACHE_PATH) and self.__file_exists(self.CONV_VALID_CACHE_PATH):
-            return
-
-        steps_per_epoch = int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE))
-        validation_steps = int(np.ceil(val_batches.samples / self.TRAINING_BATCH_SIZE))
-        val_features = self.conv_model_portion.predict_generator(val_batches, validation_steps)
-        trn_features = self.conv_model_portion.predict_generator(batches, steps_per_epoch)
-        save_array(self.CONV_TRAIN_CACHE_PATH, trn_features)
-        save_array(self.CONV_VALID_CACHE_PATH, val_features)
-
-    def __file_exists(self, file_path: str):
-        return os.path.exists(file_path)
 
     def __test(self, path, batch_size=8):
         # noinspection PyTypeChecker
