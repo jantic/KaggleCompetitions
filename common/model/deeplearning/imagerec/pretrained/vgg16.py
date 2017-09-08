@@ -8,6 +8,7 @@ import re
 import keras
 import numpy as np
 from keras import layers
+from keras.layers import BatchNormalization
 from keras.layers.convolutional import MaxPooling2D, ZeroPadding2D, Conv2D
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.models import Sequential
@@ -90,8 +91,10 @@ class Vgg16(IImageRecModel):
         return [
             Flatten(),
             Dense(4096, activation='relu'),
+            BatchNormalization(),
             Dropout(drop_out),
             Dense(4096, activation='relu'),
+            BatchNormalization(),
             Dropout(drop_out),
             Dense(num_classes, activation='softmax')
         ]
@@ -108,7 +111,7 @@ class Vgg16(IImageRecModel):
         for dense_layer in dense_layers:
             model.add(dense_layer)
 
-        model.load_weights(get_file('vgg16.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16.h5', cache_subdir='models'))
+        model.load_weights(get_file('vgg16_bn.h5', self.ORIGINAL_MODEL_WEIGHTS_URL + 'vgg16_bn.h5', cache_subdir='models'))
         return model
 
     def __initialize_model(self):
@@ -285,7 +288,7 @@ class Vgg16(IImageRecModel):
             conv_cache_training_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=batches,
                     batch_id = 'training', conv_model=self.conv_model_portion, batch_size=self.TRAINING_BATCH_SIZE, shuffle=True)
             conv_cache_validation_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=val_batches,
-                    batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=True)
+                    batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=False)
 
             self.dense_model_portion.fit_generator(conv_cache_training_batches, steps_per_epoch=steps_per_epoch, epochs=nb_epoch, initial_epoch=initial_epoch,
                                      validation_data=conv_cache_validation_batches, validation_steps=int(np.ceil(val_batches.samples / self.VALIDATION_BATCH_SIZE)),

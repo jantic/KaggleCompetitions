@@ -44,13 +44,13 @@ def write_predictions_to_csv(pred_summaries: [PredictionsSummary]):
     df = df.sort_values('img')
     df.to_csv('submission.csv', index=False)
 
-run_main_test = False
-refine_training = True
+run_main_test = True
+refine_training = False
 image_splitting = False
 visualize_performance = True
 visualization_class = 'c0'
 use_sample = False
-number_of_epochs = 6
+number_of_epochs = 30
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64

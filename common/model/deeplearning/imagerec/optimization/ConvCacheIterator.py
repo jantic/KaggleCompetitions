@@ -39,14 +39,12 @@ class ConvCacheIterator(Iterator):
         self.CACHE_FILE_QUEUE = deque(maxlen=self.FILE_QUEUE_SIZE)
         self.__start_file_load_daemon_threads()
         self.__advance_to_next_cache_file()
-        num_entries_in_file = self.__get_num_entries_in_current_file()
-        super(ConvCacheIterator, self).__init__(num_entries_in_file, batch_size=batch_size, shuffle=shuffle, seed=seed)
+        super(ConvCacheIterator, self).__init__(0, batch_size=batch_size, shuffle=shuffle, seed=seed)
 
     def next(self):
         with self.lock:
             index_array, current_index, current_batch_size = next(self.index_generator)
-
-        return self.__get_batch_data_from_cache(index_array)
+            return self.__get_batch_data_from_cache(index_array)
 
     def __start_file_load_daemon_threads(self):
         for thread_num in range(self.FILE_QUEUE_SIZE):
@@ -58,27 +56,29 @@ class ConvCacheIterator(Iterator):
             time.sleep(0.01)
 
     def _flow_index(self, n, batch_size=32, shuffle=False, seed=None):
-        # Ensure self.batch_index is 0.
-        self.reset()
         while 1:
             num_entries_in_file = self.__get_num_entries_in_current_file()
-            self.n = num_entries_in_file
 
-            if seed is not None:
-                np.random.seed(seed + self.total_batches_seen)
-            if self.batch_index == 0:
-                index_array = np.arange(num_entries_in_file)
-                if shuffle:
-                    index_array = np.random.permutation(n)
 
             current_index = (self.batch_index * batch_size) % num_entries_in_file
             if num_entries_in_file > current_index + batch_size:
                 current_batch_size = batch_size
                 self.batch_index += 1
             else:
-                current_batch_size = num_entries_in_file - current_index
                 self.batch_index = 0
                 self.__advance_to_next_cache_file()
+                num_entries_in_file = self.__get_num_entries_in_current_file()
+                current_batch_size = num_entries_in_file - current_index
+
+            self.n = num_entries_in_file
+
+            if seed is not None:
+                np.random.seed(seed + self.total_batches_seen)
+
+            if shuffle:
+                index_array = np.random.permutation(num_entries_in_file)
+            else:
+                index_array = np.arange(num_entries_in_file)
 
             self.total_batches_seen += 1
             yield (index_array[current_index: current_index + current_batch_size],
@@ -129,7 +129,6 @@ class ConvCacheIterator(Iterator):
 
     def __get_num_entries_in_current_file(self):
         return len(self.CURRENT_FEATURE_ARRAY)
-
 
     def __advance_to_next_cache_file(self):
         while len(self.CACHE_FILE_QUEUE) == 0:
