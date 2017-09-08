@@ -117,7 +117,7 @@ class ImagePerformanceVisualizer:
         interp = False
 
         plt.interactive(False)
-        if type(images[0]) is np.ndarray:
+        if len(images) > 0 and type(images[0]) is np.ndarray:
             images = np.array(images).astype(np.uint8)
             if images.shape[-1] != 3:
                 images = images.transpose((0, 2, 3, 1))

@@ -47,11 +47,11 @@ class Vgg16(IImageRecModel):
         self.DROP_OUT = drop_out
         self.__initialize_model()
 
-    def refine_training(self, num_epochs: int):
+    def refine_training(self, steps_per_epoch: int, number_of_epochs: int):
         latest_saved_filename = self.__get_latest_saved_weights_file_name()
         latest_saved_epoch = self.__determine_epoch_num_from_weights_file_name(latest_saved_filename)
         initial_epoch = max(latest_saved_epoch, 0) if self.__can_load_weights_from_cache() else 0
-        self.__fit(self.TRAINING_BATCHES, self.VALIDATION_BATCHES, nb_epoch=num_epochs, initial_epoch=initial_epoch)
+        self.__fit(self.TRAINING_BATCHES, self.VALIDATION_BATCHES, steps_per_epoch=steps_per_epoch, nb_epoch=number_of_epochs, initial_epoch=initial_epoch)
 
     def predict(self, image_prediction_requests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]:
         verbose = 1 if details else 0
@@ -270,7 +270,7 @@ class Vgg16(IImageRecModel):
         optimizer = RMSprop(lr=0.00001, rho=0.7)
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
-    def __fit(self, batches, val_batches, nb_epoch=1, initial_epoch=0):
+    def __fit(self, batches, val_batches, steps_per_epoch: int, nb_epoch=1, initial_epoch=0):
         # tensorBoard = keras.callbacks.TensorBoard(log_dir='./tblogs', histogram_freq=1, write_graph=True, write_images=True)
         early_stopping = keras.callbacks.EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=10, verbose=1, mode='auto')
         model_checkpoint = keras.callbacks.ModelCheckpoint('./' + self.CACHE_DIRECTORY + '/weights.{epoch:02d}-{val_loss:.4f}-{val_acc:.4f}.h5', monitor='val_loss', verbose=0,
@@ -283,11 +283,11 @@ class Vgg16(IImageRecModel):
             conv_cache_directory = self.CACHE_DIRECTORY + '/convcache/'
 
             conv_cache_training_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=batches,
-                                                            batch_id = 'training', conv_model=self.conv_model_portion, batch_size=self.TRAINING_BATCH_SIZE)
+                    batch_id = 'training', conv_model=self.conv_model_portion, batch_size=self.TRAINING_BATCH_SIZE, shuffle=True)
             conv_cache_validation_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=val_batches,
-                                                              batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE)
+                    batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=True)
 
-            self.dense_model_portion.fit_generator(conv_cache_training_batches, steps_per_epoch=int(np.ceil(batches.samples / self.TRAINING_BATCH_SIZE)), epochs=nb_epoch, initial_epoch=initial_epoch,
+            self.dense_model_portion.fit_generator(conv_cache_training_batches, steps_per_epoch=steps_per_epoch, epochs=nb_epoch, initial_epoch=initial_epoch,
                                      validation_data=conv_cache_validation_batches, validation_steps=int(np.ceil(val_batches.samples / self.VALIDATION_BATCH_SIZE)),
                                      callbacks=[early_stopping, model_checkpoint])
         else:

@@ -59,9 +59,10 @@ def plots(ims, figsize=(12, 6), rows=1, interp=False, titles=None):
     plt.show()
 
 
+#mx should be pretty close to 1-validation accuracy.
 def do_clip(arr, mx):
     clipped = np.clip(arr, (1 - mx) / 1, mx)
-    return clipped / clipped.sum(axis=1)[:, np.newaxis]
+    return clipped / clipped.sum()
 
 
 def get_batches(dirname, gen=image.ImageDataGenerator(), shuffle=True, batch_size=4, class_mode='categorical',

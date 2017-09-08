@@ -3,7 +3,7 @@ import pandas as pd
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 
 
-class KaggleCsvWriter:
+class CatsVsDogsCsvWriter:
     @staticmethod
     def write_predictions_for_class_id_to_csv(prediction_summaries: [PredictionsSummary], class_id):
         if len(prediction_summaries) == 0:

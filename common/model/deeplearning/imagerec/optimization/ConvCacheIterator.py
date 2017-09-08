@@ -9,12 +9,23 @@ from keras.models import Sequential
 from keras.preprocessing import image
 from keras.utils.np_utils import to_categorical
 import bcolz
+from collections import deque
+import time
+import threading
 
+
+from common.model.deeplearning.imagerec.optimization.CachedTrainingPair import CachedTrainingPair
 from common.model.deeplearning.imagerec.optimization.TransparentDirectoryIterator import TransparentDirectoryIterator
 
 
 class ConvCacheIterator(Iterator):
-    def __init__(self, cache_directory: str, batches: DirectoryIterator, batch_id: str, conv_model: Sequential, batch_size=32, num_cache_parts=100):
+    def __init__(self, cache_directory: str, batches: DirectoryIterator, batch_id: str, conv_model: Sequential, batch_size=32, num_cache_parts=100,
+                 shuffle=False, seed=None):
+        self.LATEST_FILE_NUM = 0
+        self.FILE_NUM_LOCK = threading.Lock()
+        self.FILE_QUEUE_APPEND_LOCK = threading.Lock()
+        self.FILE_QUEUE_SIZE = 5
+        self.SHUFFLE = shuffle
         self.CONV_MODEL = conv_model
         self.SOURCE_BATCHES = batches
         self.CACHE_DIRECTORY = cache_directory
@@ -22,17 +33,56 @@ class ConvCacheIterator(Iterator):
         self.BATCH_SIZE = batch_size
         self.LABELS = self.__onehot(batches.classes)
         self.BATCH_ID  = batch_id
-        self.CURRENT_FILE_NUM = -1
         self.NUM_CACHE_PARTS = num_cache_parts
-        self.STEPS_PER_EPOCH = int(np.ceil(batches.samples / batch_size / num_cache_parts))
+        self.STEPS_PER_FILE = int(np.ceil(batches.samples / batch_size / num_cache_parts))
         self.__generate_batch_data_cache_if_needed()
+        self.CACHE_FILE_QUEUE = deque(maxlen=self.FILE_QUEUE_SIZE)
+        self.__start_file_load_daemon_threads()
         self.__advance_to_next_cache_file()
-        super(ConvCacheIterator, self).__init__(batches.samples, batch_size=batch_size, shuffle=False, seed=None)
+        num_entries_in_file = self.__get_num_entries_in_current_file()
+        super(ConvCacheIterator, self).__init__(num_entries_in_file, batch_size=batch_size, shuffle=shuffle, seed=seed)
 
     def next(self):
         with self.lock:
             index_array, current_index, current_batch_size = next(self.index_generator)
-            return self.__get_batch_data_from_cache(index_array)
+
+        return self.__get_batch_data_from_cache(index_array)
+
+    def __start_file_load_daemon_threads(self):
+        for thread_num in range(self.FILE_QUEUE_SIZE):
+            thread = threading.Thread(target=self.__file_queue_populator_thread, args=())
+            thread.daemon = True
+            thread.start()
+
+        while len(self.CACHE_FILE_QUEUE) < self.FILE_QUEUE_SIZE:
+            time.sleep(0.01)
+
+    def _flow_index(self, n, batch_size=32, shuffle=False, seed=None):
+        # Ensure self.batch_index is 0.
+        self.reset()
+        while 1:
+            num_entries_in_file = self.__get_num_entries_in_current_file()
+            self.n = num_entries_in_file
+
+            if seed is not None:
+                np.random.seed(seed + self.total_batches_seen)
+            if self.batch_index == 0:
+                index_array = np.arange(num_entries_in_file)
+                if shuffle:
+                    index_array = np.random.permutation(n)
+
+            current_index = (self.batch_index * batch_size) % num_entries_in_file
+            if num_entries_in_file > current_index + batch_size:
+                current_batch_size = batch_size
+                self.batch_index += 1
+            else:
+                current_batch_size = num_entries_in_file - current_index
+                self.batch_index = 0
+                self.__advance_to_next_cache_file()
+
+            self.total_batches_seen += 1
+            yield (index_array[current_index: current_index + current_batch_size],
+                   current_index, current_batch_size)
 
     #TODO:  make this smarter eventually
     def __cache_exists(self):
@@ -53,7 +103,7 @@ class ConvCacheIterator(Iterator):
         for cache_part_num in range(self.NUM_CACHE_PARTS):
             print('Caching model features for ' + self.BATCH_ID + ', part ' + str(cache_part_num+1) + ' out of ' + str(self.NUM_CACHE_PARTS))
 
-            features_array = self.CONV_MODEL.predict_generator(transparent_batches, self.STEPS_PER_EPOCH, max_queue_size=1)
+            features_array = self.CONV_MODEL.predict_generator(transparent_batches, self.STEPS_PER_FILE, max_queue_size=1)
             features_cache_path = self.__generate_features_cache_path(cache_part_num)
             ConvCacheIterator.__save_array(features_cache_path, features_array)
             labels_array = np.zeros(tuple([len(features_array)] + list(batch_labels_list[0].shape)[1:]), dtype=image.K.floatx())
@@ -73,54 +123,48 @@ class ConvCacheIterator(Iterator):
 
 
     def __get_batch_data_from_cache(self, index_array):
-        batch_x = np.zeros(tuple([self.BATCH_SIZE] + list(self.CURRENT_FEATURE_ARRAY.shape)[1:]), dtype=image.K.floatx())
-        batch_y = np.zeros(tuple([self.BATCH_SIZE] + list(self.CURRENT_LABEL_ARRAY.shape)[1:]), dtype=image.K.floatx())
-
-        for i, absolute_batch_index in enumerate(index_array):
-            if absolute_batch_index == 0:
-                self.__reset_cache_reads()
-
-            relative_batch_index = self.__calculate_relative_batch_index(absolute_batch_index)
-            max_relative_index_current_array = len(self.CURRENT_FEATURE_ARRAY)-1
-
-            while relative_batch_index > max_relative_index_current_array:
-                self.__advance_to_next_cache_file()
-                relative_batch_index = self.__calculate_relative_batch_index(absolute_batch_index)
-                max_relative_index_current_array = len(self.CURRENT_FEATURE_ARRAY) - 1
-                if relative_batch_index < 0:
-                    print('\n---------------------wtf moment coming-----------------------')
-
-                    print('\nbatch_id: ' + self.BATCH_ID + '; file_num:' + str(self.CURRENT_FILE_NUM) + '; max_relative_index_current_array: ' +\
-                          str(max_relative_index_current_array) + '; absolute_batch_index: ' + str(absolute_batch_index) + '; total_entries_read_so_far: ' + \
-                          str(self.TOTAL_ENTRIES_READ_SO_FAR) + '; current_feature_array_len: ' +  str(len(self.CURRENT_FEATURE_ARRAY)))
-
-
-            batch_x[i] = self.CURRENT_FEATURE_ARRAY[relative_batch_index]
-            batch_y[i] = self.CURRENT_LABEL_ARRAY[relative_batch_index]
-
+        batch_x = self.CURRENT_FEATURE_ARRAY[index_array]
+        batch_y = self.CURRENT_LABEL_ARRAY[index_array]
         return batch_x, batch_y
 
-    def __reset_cache_reads(self):
-        self.CURRENT_FILE_NUM = -1
-        self.__advance_to_next_cache_file()
+    def __get_num_entries_in_current_file(self):
+        return len(self.CURRENT_FEATURE_ARRAY)
 
-    def __calculate_relative_batch_index(self, absolute_batch_index: int):
-        return absolute_batch_index - (self.TOTAL_ENTRIES_READ_SO_FAR - len(self.CURRENT_FEATURE_ARRAY))
 
     def __advance_to_next_cache_file(self):
-        self.CURRENT_FILE_NUM = self.__get_next_file_num(self.CURRENT_FILE_NUM)
-        self.CURRENT_FEATURE_ARRAY = self.__load_feature_array(self.CURRENT_FILE_NUM)
-        self.CURRENT_LABEL_ARRAY = self.__load_label_array(self.CURRENT_FILE_NUM)
+        while len(self.CACHE_FILE_QUEUE) == 0:
+            time.sleep(0.01)
 
-        if self.CURRENT_FILE_NUM == 0:
-            self.TOTAL_ENTRIES_READ_SO_FAR = 0
+        array_pair = self.CACHE_FILE_QUEUE.popleft()
+        self.CURRENT_FEATURE_ARRAY = array_pair.get_feature_array()
+        self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
 
-        self.TOTAL_ENTRIES_READ_SO_FAR =  self.TOTAL_ENTRIES_READ_SO_FAR + len(self.CURRENT_FEATURE_ARRAY)
 
-    def __get_next_file_num(self, file_num: int):
-        incremented_file_num = file_num + 1
-        incremented_cache_path = self.__generate_features_cache_path(file_num=incremented_file_num)
-        return incremented_file_num if os.path.exists(incremented_cache_path) else 0
+
+    def __file_queue_populator_thread(self):
+
+        while True:
+            file_num = self.__get_next_file_num()
+            feature_array = self.__load_feature_array(file_num)
+            label_array = self.__load_label_array(file_num)
+            array_pair = CachedTrainingPair(feature_array=feature_array, label_array=label_array)
+
+            with self.FILE_QUEUE_APPEND_LOCK:
+                while len(self.CACHE_FILE_QUEUE) == self.CACHE_FILE_QUEUE.maxlen:
+                    time.sleep(0.01)
+                self.CACHE_FILE_QUEUE.append(array_pair)
+
+    def __get_next_file_num(self):
+        with self.FILE_NUM_LOCK:
+            if self.SHUFFLE:
+                random_file_num = np.random.randint(0, self.NUM_CACHE_PARTS-1)
+                self.LATEST_FILE_NUM = random_file_num
+                return self.LATEST_FILE_NUM
+            else:
+                incremented_file_num = self.LATEST_FILE_NUM + 1
+                self.LATEST_FILE_NUM = incremented_file_num if incremented_file_num < self.NUM_CACHE_PARTS else 0
+                return self.LATEST_FILE_NUM
+
 
     def __load_feature_array(self, file_num: int):
         cache_path = self.__generate_features_cache_path(file_num=file_num)
