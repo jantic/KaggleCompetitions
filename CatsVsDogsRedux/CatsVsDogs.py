@@ -18,7 +18,7 @@ image_splitting = False
 visualize_performance = True
 visualization_class = 'dogs'
 use_sample = False
-number_of_epochs = 200
+number_of_epochs = 50
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
@@ -46,7 +46,7 @@ sample_steps_per_epoch = 10
 
 
 DataSetup.establish_working_data_directory_if_needed(source_directory=source_directory, destination_directory=main_directory,
-    destination_sample_directory=sample_directory, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.04,train_augment_factor=5)
+    destination_sample_directory=sample_directory, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.04,train_augment_factor=10)
 
 training_set_path = sample_training_set_path if use_sample else main_training_set_path
 validation_set_path = sample_validation_set_path if use_sample else main_validation_set_path

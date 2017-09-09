@@ -45,7 +45,7 @@ def write_predictions_to_csv(pred_summaries: [PredictionsSummary]):
     df.to_csv('submission.csv', index=False)
 
 run_main_test = True
-refine_training = False
+refine_training = True
 image_splitting = False
 visualize_performance = True
 visualization_class = 'c0'

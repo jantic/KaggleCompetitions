@@ -59,7 +59,6 @@ class ConvCacheIterator(Iterator):
         while 1:
             num_entries_in_file = self.__get_num_entries_in_current_file()
 
-
             current_index = (self.batch_index * batch_size) % num_entries_in_file
             if num_entries_in_file > current_index + batch_size:
                 current_batch_size = batch_size
@@ -98,6 +97,8 @@ class ConvCacheIterator(Iterator):
         def record_labels(batch_x, batch_y):
             batch_labels_list.append(batch_y)
 
+        num_samples_cached = 0
+        total_num_samples = self.SOURCE_BATCHES.samples
         transparent_batches = TransparentDirectoryIterator(self.SOURCE_BATCHES, record_labels)
 
         for cache_part_num in range(self.NUM_CACHE_PARTS):
@@ -109,16 +110,20 @@ class ConvCacheIterator(Iterator):
             labels_array = np.zeros(tuple([len(features_array)] + list(batch_labels_list[0].shape)[1:]), dtype=image.K.floatx())
             index = 0
 
-            #There's an extra batch pulled at the end, so don't use that as a set of labels.
+            #There's an extra batch pulled at the end, so don't use that
             for i in range(len(batch_labels_list)-1):
                 batch_labels = batch_labels_list[i]
                 for label_pair in batch_labels:
                     labels_array[index]=label_pair
                     index=index+1
+                    num_samples_cached=num_samples_cached+1
 
             batch_labels_list.clear()
             labels_cache_path = self.__generate_labels_cache_path(cache_part_num)
             ConvCacheIterator.__save_array(labels_cache_path, labels_array)
+            transparent_batches.mark_last_batch_skipped()
+
+        print('Num cached: ' + num_samples_cached + ' vs num samples: ' + total_num_samples)
 
 
 

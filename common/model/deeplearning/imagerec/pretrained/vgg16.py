@@ -269,8 +269,8 @@ class Vgg16(IImageRecModel):
 
     @staticmethod
     def __compile(model: Sequential):
-        # optimizer = Adam(lr=0.001)
-        optimizer = RMSprop(lr=0.00001, rho=0.7)
+        optimizer = Adam(lr=0.001)
+        #optimizer = RMSprop(lr=0.00001, rho=0.7)
         model.compile(optimizer=optimizer, loss='categorical_crossentropy', metrics=['accuracy'])
 
     def __fit(self, batches, val_batches, steps_per_epoch: int, nb_epoch=1, initial_epoch=0):
@@ -288,7 +288,7 @@ class Vgg16(IImageRecModel):
             conv_cache_training_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=batches,
                     batch_id = 'training', conv_model=self.conv_model_portion, batch_size=self.TRAINING_BATCH_SIZE, shuffle=True)
             conv_cache_validation_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=val_batches,
-                    batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=False)
+                    batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=True)
 
             self.dense_model_portion.fit_generator(conv_cache_training_batches, steps_per_epoch=steps_per_epoch, epochs=nb_epoch, initial_epoch=initial_epoch,
                                      validation_data=conv_cache_validation_batches, validation_steps=int(np.ceil(val_batches.samples / self.VALIDATION_BATCH_SIZE)),

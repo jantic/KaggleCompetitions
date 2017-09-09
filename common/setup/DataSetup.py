@@ -5,6 +5,7 @@ import os
 
 from common.setup.ImagesDirectoryCreationMode import ImagesDirectoryCreationMode
 from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+import concurrent.futures
 
 class DataSetup:
     @staticmethod
@@ -40,11 +41,14 @@ class DataSetup:
             return
 
         sub_directory_paths = DataSetup.__get_sub_directories(training_directory)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            for sub_directory_path in sub_directory_paths:
+                source_images = DataSetup.__get_files_with_extension(sub_directory_path, image_file_extension)
+                futures = []
+                for source_image in source_images:
+                    futures.append(executor.submit(DataSetup.__add_augmented_images, train_augment_factor, source_image))
 
-        for sub_directory_path in sub_directory_paths:
-            source_images = DataSetup.__get_files_with_extension(sub_directory_path, image_file_extension)
-            for source_image in source_images:
-                DataSetup.__add_augmented_images(source_image, train_augment_factor)
+                concurrent.futures.wait(futures)
 
 
     @staticmethod
@@ -107,7 +111,7 @@ class DataSetup:
                     shutil.copy(source_image_to_move_or_copy, new_image_path)
 
     @staticmethod
-    def __add_augmented_images(original_image_path: str, augment_factor: int):
+    def __add_augmented_images(augment_factor: int, original_image_path: str):
         datagen = ImageDataGenerator(
             rotation_range=15,
             width_shift_range=0.1,
