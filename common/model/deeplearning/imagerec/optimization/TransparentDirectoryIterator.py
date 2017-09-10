@@ -1,6 +1,6 @@
 from keras.preprocessing.image import DirectoryIterator
 
-#path, gen=image.ImageDataGenerator(), shuffle=True, batch_size=8, class_mode='categorical'
+
 class TransparentDirectoryIterator(DirectoryIterator):
     def __init__(self, source_directory_iterator: DirectoryIterator, next_callback):
         self.NEXT_CALL_BACKS = []

@@ -19,8 +19,8 @@ from common.model.deeplearning.imagerec.optimization.TransparentDirectoryIterato
 
 
 class ConvCacheIterator(Iterator):
-    def __init__(self, cache_directory: str, batches: DirectoryIterator, batch_id: str, conv_model: Sequential, batch_size=32, num_cache_parts=100,
-                 shuffle=False, seed=None):
+    def __init__(self, cache_directory: str, batches: DirectoryIterator, batch_id: str, conv_model: Sequential, batch_size=32,
+                 shuffle=False, seed=None, steps_per_file=20):
         self.LATEST_FILE_NUM = 0
         self.FILE_NUM_LOCK = threading.Lock()
         self.FILE_QUEUE_APPEND_LOCK = threading.Lock()
@@ -32,9 +32,10 @@ class ConvCacheIterator(Iterator):
         ConvCacheIterator.__establish_directory_if_needed(cache_directory)
         self.BATCH_SIZE = batch_size
         self.LABELS = self.__onehot(batches.classes)
-        self.BATCH_ID  = batch_id
-        self.NUM_CACHE_PARTS = num_cache_parts
-        self.STEPS_PER_FILE = int(np.ceil(batches.samples / batch_size / num_cache_parts))
+        self.BATCH_ID = batch_id
+        self.STEPS_PER_FILE = steps_per_file
+        self.NUM_ITEMS_IN_BATCHES = batches.samples
+        self.NUM_CACHE_PARTS = int(np.ceil(self.NUM_ITEMS_IN_BATCHES / self.BATCH_SIZE / self.STEPS_PER_FILE))
         self.__generate_batch_data_cache_if_needed()
         self.CACHE_FILE_QUEUE = deque(maxlen=self.FILE_QUEUE_SIZE)
         self.__start_file_load_daemon_threads()
@@ -98,32 +99,36 @@ class ConvCacheIterator(Iterator):
             batch_labels_list.append(batch_y)
 
         num_samples_cached = 0
-        total_num_samples = self.SOURCE_BATCHES.samples
         transparent_batches = TransparentDirectoryIterator(self.SOURCE_BATCHES, record_labels)
 
         for cache_part_num in range(self.NUM_CACHE_PARTS):
             print('Caching model features for ' + self.BATCH_ID + ', part ' + str(cache_part_num+1) + ' out of ' + str(self.NUM_CACHE_PARTS))
-
-            features_array = self.CONV_MODEL.predict_generator(transparent_batches, self.STEPS_PER_FILE, max_queue_size=1)
+            num_items_remaining = self.NUM_ITEMS_IN_BATCHES - num_samples_cached
+            features_array_raw = self.CONV_MODEL.predict_generator(transparent_batches, self.STEPS_PER_FILE, max_queue_size=1)
+            #only take the number of items needed to match total number of samples in source batch
+            num_items_to_fetch = min(len(features_array_raw), num_items_remaining)
+            features_array = features_array_raw[:num_items_to_fetch+1]
             features_cache_path = self.__generate_features_cache_path(cache_part_num)
             ConvCacheIterator.__save_array(features_cache_path, features_array)
             labels_array = np.zeros(tuple([len(features_array)] + list(batch_labels_list[0].shape)[1:]), dtype=image.K.floatx())
             index = 0
 
-            #There's an extra batch pulled at the end, so don't use that
-            for i in range(len(batch_labels_list)-1):
-                batch_labels = batch_labels_list[i]
+            for batch_labels in batch_labels_list:
                 for label_pair in batch_labels:
+                    if index >= num_items_to_fetch:
+                        break
                     labels_array[index]=label_pair
                     index=index+1
                     num_samples_cached=num_samples_cached+1
 
+            print(self.BATCH_ID + ': Num cached: ' + str(num_samples_cached) + ' vs num samples: '
+                  + str(self.NUM_ITEMS_IN_BATCHES) + ' vs steps per file: ' + str(self.STEPS_PER_FILE))
             batch_labels_list.clear()
             labels_cache_path = self.__generate_labels_cache_path(cache_part_num)
             ConvCacheIterator.__save_array(labels_cache_path, labels_array)
+            #Hacky, but there's an extra batch retrieved that isn't used otherwise
             transparent_batches.mark_last_batch_skipped()
 
-        print('Num cached: ' + num_samples_cached + ' vs num samples: ' + total_num_samples)
 
 
 
@@ -160,8 +165,9 @@ class ConvCacheIterator(Iterator):
 
     def __get_next_file_num(self):
         with self.FILE_NUM_LOCK:
+            #TODO:  Is this causing miscounts of how many samples there are?  Not sure yet....
             if self.SHUFFLE:
-                random_file_num = np.random.randint(0, self.NUM_CACHE_PARTS-1)
+                random_file_num = 0 if self.NUM_CACHE_PARTS <= 1 else np.random.randint(0, self.NUM_CACHE_PARTS-1)
                 self.LATEST_FILE_NUM = random_file_num
                 return self.LATEST_FILE_NUM
             else:

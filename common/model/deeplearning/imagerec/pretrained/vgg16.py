@@ -37,7 +37,7 @@ class Vgg16(IImageRecModel):
         self.TRAINING_BATCH_SIZE = training_batch_size
         self.VALIDATION_BATCH_SIZE = validation_batch_size
         self.TRAINING_BATCHES = self.__get_batches(training_images_path, shuffle=True, batch_size=training_batch_size)
-        self.VALIDATION_BATCHES = self.__get_batches(validation_images_path, shuffle=True, batch_size=validation_batch_size)
+        self.VALIDATION_BATCHES = self.__get_batches(validation_images_path, shuffle=False, batch_size=validation_batch_size)
         self.VGG_MEAN = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3, 1, 1))
         self.ORIGINAL_MODEL_WEIGHTS_URL = 'http://files.fast.ai/models/'
         self.CACHE_DIRECTORY = cache_directory
@@ -288,7 +288,7 @@ class Vgg16(IImageRecModel):
             conv_cache_training_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=batches,
                     batch_id = 'training', conv_model=self.conv_model_portion, batch_size=self.TRAINING_BATCH_SIZE, shuffle=True)
             conv_cache_validation_batches = ConvCacheIterator(cache_directory=conv_cache_directory, batches=val_batches,
-                    batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=True)
+                    batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=False)
 
             self.dense_model_portion.fit_generator(conv_cache_training_batches, steps_per_epoch=steps_per_epoch, epochs=nb_epoch, initial_epoch=initial_epoch,
                                      validation_data=conv_cache_validation_batches, validation_steps=int(np.ceil(val_batches.samples / self.VALIDATION_BATCH_SIZE)),
