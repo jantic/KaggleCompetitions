@@ -14,7 +14,7 @@ class CatsVsDogsCsvWriter:
         for prediction_summary in prediction_summaries:
             test_id = prediction_summary.get_test_id()
             confidence = prediction_summary.get_confidence_for_class_id(class_id)
-            clipped_confidence = 0.02 if confidence < 0.02 else (0.98 if confidence > 0.98 else confidence)
+            clipped_confidence = 0.01 if confidence < 0.01 else (0.99 if confidence > 0.99 else confidence)
             records.append({'id': test_id, 'label': clipped_confidence})
 
         df = pd.DataFrame.from_records(records)

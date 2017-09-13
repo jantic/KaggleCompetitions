@@ -17,12 +17,13 @@ refine_training = True
 image_splitting = False
 visualize_performance = True
 visualization_class = 'dogs'
-use_sample = True
+use_sample = False
 number_of_epochs = 50
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
-main_steps_per_epoch = 500
+main_steps_per_epoch = 200
+
 
 reload(utils)
 np.set_printoptions(precision=4, linewidth=100)

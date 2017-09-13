@@ -62,8 +62,7 @@ class DataSetup:
             new_directory_path = str.replace(source_data_directory_path, source_directory, destination_directory)
             DataSetup.__establish_directory_if_needed(new_directory_path)
             DataSetup.__create_new_images_directory(source_data_directory_path, new_directory_path,
-                    image_file_extension, 1.0, ImagesDirectoryCreationMode.COPY)
-
+                image_file_extension, 1.0, ImagesDirectoryCreationMode.COPY)
 
     @staticmethod
     def __need_to_establish_working_data_directory(destination_directory):
@@ -96,19 +95,29 @@ class DataSetup:
                                       creation_mode: ImagesDirectoryCreationMode):
         source_sub_directories = DataSetup.__get_sub_directories(source_dir)
 
-        for source_sub_directory in source_sub_directories:
-            destination_sub_directory = str.replace(source_sub_directory, source_dir, destination_dir)
-            DataSetup.__establish_directory_if_needed(destination_sub_directory)
-            source_images = DataSetup.__get_files_with_extension(source_sub_directory, image_file_extension)
-            num_images_to_copy = int(round(ratio_to_copy * len(source_images), 0))
-            images_to_move_or_copy = permutation(source_images)[:num_images_to_copy]
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = []
+            for source_sub_directory in source_sub_directories:
+                DataSetup.__create_new_images_subdirectory(source_sub_directory, source_dir, destination_dir, image_file_extension, ratio_to_copy, creation_mode)
+                futures.append(executor.submit(DataSetup.__create_new_images_subdirectory, source_sub_directory,
+                                               source_dir, destination_dir, image_file_extension, ratio_to_copy, creation_mode))
+            concurrent.futures.wait(futures)
 
-            for source_image_to_move_or_copy in images_to_move_or_copy:
-                new_image_path = str.replace(source_image_to_move_or_copy, source_dir, destination_dir)
-                if creation_mode == ImagesDirectoryCreationMode.MOVE:
-                    shutil.move(source_image_to_move_or_copy, new_image_path)
-                else:
-                    shutil.copy(source_image_to_move_or_copy, new_image_path)
+    @staticmethod
+    def __create_new_images_subdirectory(source_sub_directory: str, source_dir: str, destination_dir: str, image_file_extension: str, ratio_to_copy: float,
+                                         creation_mode: ImagesDirectoryCreationMode):
+        destination_sub_directory = str.replace(source_sub_directory, source_dir, destination_dir)
+        DataSetup.__establish_directory_if_needed(destination_sub_directory)
+        source_images = DataSetup.__get_files_with_extension(source_sub_directory, image_file_extension)
+        num_images_to_copy = int(round(ratio_to_copy * len(source_images), 0))
+        images_to_move_or_copy = permutation(source_images)[:num_images_to_copy]
+
+        for source_image_to_move_or_copy in images_to_move_or_copy:
+            new_image_path = str.replace(source_image_to_move_or_copy, source_dir, destination_dir)
+            if creation_mode == ImagesDirectoryCreationMode.MOVE:
+                shutil.move(source_image_to_move_or_copy, new_image_path)
+            else:
+                shutil.copy(source_image_to_move_or_copy, new_image_path)
 
     @staticmethod
     def __add_augmented_images(augment_factor: int, original_image_path: str):

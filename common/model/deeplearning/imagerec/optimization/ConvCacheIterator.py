@@ -21,6 +21,7 @@ from common.model.deeplearning.imagerec.optimization.TransparentDirectoryIterato
 class ConvCacheIterator(Iterator):
     def __init__(self, cache_directory: str, batches: DirectoryIterator, batch_id: str, conv_model: Sequential, batch_size=32,
                  shuffle=False, seed=None, steps_per_file=20):
+        self.batch_index = 0
         self.LATEST_FILE_NUM = 0
         self.FILE_NUM_LOCK = threading.Lock()
         self.FILE_QUEUE_APPEND_LOCK = threading.Lock()
@@ -68,6 +69,11 @@ class ConvCacheIterator(Iterator):
                 self.batch_index = 0
                 self.__advance_to_next_cache_file()
                 num_entries_in_file = self.__get_num_entries_in_current_file()
+
+                while num_entries_in_file == 0:
+                    self.__advance_to_next_cache_file()
+                    num_entries_in_file = self.__get_num_entries_in_current_file()
+
                 current_batch_size = num_entries_in_file - current_index
 
             self.n = num_entries_in_file
@@ -107,15 +113,16 @@ class ConvCacheIterator(Iterator):
             features_array_raw = self.CONV_MODEL.predict_generator(transparent_batches, self.STEPS_PER_FILE, max_queue_size=1)
             #only take the number of items needed to match total number of samples in source batch
             num_items_to_fetch = min(len(features_array_raw), num_items_remaining)
-            features_array = features_array_raw[:num_items_to_fetch+1]
+            features_array = features_array_raw[:num_items_to_fetch]
             features_cache_path = self.__generate_features_cache_path(cache_part_num)
             ConvCacheIterator.__save_array(features_cache_path, features_array)
-            labels_array = np.zeros(tuple([len(features_array)] + list(batch_labels_list[0].shape)[1:]), dtype=image.K.floatx())
+            features_array_length = len(features_array)
+            labels_array = np.zeros(tuple([features_array_length] + list(batch_labels_list[0].shape)[1:]), dtype=image.K.floatx())
             index = 0
 
             for batch_labels in batch_labels_list:
                 for label_pair in batch_labels:
-                    if index >= num_items_to_fetch:
+                    if index >= features_array_length:
                         break
                     labels_array[index]=label_pair
                     index=index+1
@@ -126,7 +133,6 @@ class ConvCacheIterator(Iterator):
             batch_labels_list.clear()
             labels_cache_path = self.__generate_labels_cache_path(cache_part_num)
             ConvCacheIterator.__save_array(labels_cache_path, labels_array)
-            #Hacky, but there's an extra batch retrieved that isn't used otherwise
             transparent_batches.mark_last_batch_skipped()
 
 
@@ -149,7 +155,6 @@ class ConvCacheIterator(Iterator):
         self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
 
 
-
     def __file_queue_populator_thread(self):
 
         while True:
@@ -169,7 +174,7 @@ class ConvCacheIterator(Iterator):
             if self.SHUFFLE:
                 random_file_num = 0 if self.NUM_CACHE_PARTS <= 1 else np.random.randint(0, self.NUM_CACHE_PARTS-1)
                 self.LATEST_FILE_NUM = random_file_num
-                return self.LATEST_FILE_NUM
+                return random_file_num
             else:
                 incremented_file_num = self.LATEST_FILE_NUM + 1
                 self.LATEST_FILE_NUM = incremented_file_num if incremented_file_num < self.NUM_CACHE_PARTS else 0

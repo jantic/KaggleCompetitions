@@ -13,8 +13,10 @@ from common.model.deeplearning.imagerec.pretrained.vgg16 import Vgg16
 from common.setup.DataSetup import DataSetup
 from common.utils import utils
 from common.visualization.ImagePerformanceVisualizer import ImagePerformanceVisualizer
+from theano import config as theano_config
 import cProfile
 
+theano_config.exception_verbosity = 'high'
 
 def write_predictions_to_csv(pred_summaries: [PredictionsSummary]):
     if len(pred_summaries) == 0:
@@ -50,7 +52,7 @@ image_splitting = False
 visualize_performance = True
 visualization_class = 'c0'
 use_sample = False
-number_of_epochs = 30
+number_of_epochs = 50
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
@@ -67,7 +69,7 @@ main_training_set_path = main_directory + "train"
 main_validation_set_path = main_directory + "valid"
 main_test_set_path = main_directory + "test/"
 main_cache_path = "./cache/main/"
-main_steps_per_epoch = 500
+main_steps_per_epoch = 200
 
 sample_directory = data_directory + "sample/"
 sample_training_set_path = sample_directory + "train"
