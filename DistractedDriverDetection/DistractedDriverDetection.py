@@ -18,6 +18,7 @@ import cProfile
 
 theano_config.exception_verbosity = 'high'
 
+
 def write_predictions_to_csv(pred_summaries: [PredictionsSummary]):
     if len(pred_summaries) == 0:
         return

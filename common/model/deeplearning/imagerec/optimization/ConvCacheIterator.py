@@ -21,11 +21,11 @@ from common.model.deeplearning.imagerec.optimization.TransparentDirectoryIterato
 class ConvCacheIterator(Iterator):
     def __init__(self, cache_directory: str, batches: DirectoryIterator, batch_id: str, conv_model: Sequential, batch_size=32,
                  shuffle=False, seed=None, steps_per_file=20):
+        self.FILE_NUM_ARRAY = np.array([])
         self.batch_index = 0
-        self.LATEST_FILE_NUM = 0
         self.FILE_NUM_LOCK = threading.Lock()
         self.FILE_QUEUE_APPEND_LOCK = threading.Lock()
-        self.FILE_QUEUE_SIZE = 5
+        self.FILE_QUEUE_SIZE = 3
         self.SHUFFLE = shuffle
         self.CONV_MODEL = conv_model
         self.SOURCE_BATCHES = batches
@@ -156,7 +156,6 @@ class ConvCacheIterator(Iterator):
 
 
     def __file_queue_populator_thread(self):
-
         while True:
             file_num = self.__get_next_file_num()
             feature_array = self.__load_feature_array(file_num)
@@ -171,15 +170,15 @@ class ConvCacheIterator(Iterator):
     def __get_next_file_num(self):
         with self.FILE_NUM_LOCK:
             #TODO:  Is this causing miscounts of how many samples there are?  Not sure yet....
-            if self.SHUFFLE:
-                random_file_num = 0 if self.NUM_CACHE_PARTS <= 1 else np.random.randint(0, self.NUM_CACHE_PARTS-1)
-                self.LATEST_FILE_NUM = random_file_num
-                return random_file_num
-            else:
-                incremented_file_num = self.LATEST_FILE_NUM + 1
-                self.LATEST_FILE_NUM = incremented_file_num if incremented_file_num < self.NUM_CACHE_PARTS else 0
-                return self.LATEST_FILE_NUM
 
+            if len(self.FILE_NUM_ARRAY) == 0:
+                if self.SHUFFLE:
+                    self.FILE_NUM_ARRAY = np.random.permutation(self.NUM_CACHE_PARTS)
+                else:
+                    self.FILE_NUM_ARRAY = np.arange(self.NUM_CACHE_PARTS)
+
+            file_num, self.FILE_NUM_ARRAY = self.FILE_NUM_ARRAY[0], self.FILE_NUM_ARRAY[1:]
+            return file_num
 
     def __load_feature_array(self, file_num: int):
         cache_path = self.__generate_features_cache_path(file_num=file_num)
