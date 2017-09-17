@@ -36,17 +36,16 @@ class ConvCacheIterator(Iterator):
         self.BATCH_ID = batch_id
         self.STEPS_PER_FILE = steps_per_file
         self.NUM_ITEMS_IN_BATCHES = batches.samples
+        self.n = self.NUM_ITEMS_IN_BATCHES
         self.NUM_CACHE_PARTS = int(np.ceil(self.NUM_ITEMS_IN_BATCHES / self.BATCH_SIZE / self.STEPS_PER_FILE))
         self.__generate_batch_data_cache_if_needed()
         self.CACHE_FILE_QUEUE = deque(maxlen=self.FILE_QUEUE_SIZE)
         self.__start_file_load_daemon_threads()
-        self.__advance_to_next_cache_file()
         super(ConvCacheIterator, self).__init__(0, batch_size=batch_size, shuffle=shuffle, seed=seed)
 
     def next(self):
         with self.lock:
-            index_array, current_index, current_batch_size = next(self.index_generator)
-            return self.__get_batch_data_from_cache(index_array)
+            return next(self.index_generator)
 
     def __start_file_load_daemon_threads(self):
         for thread_num in range(self.FILE_QUEUE_SIZE):
@@ -58,10 +57,15 @@ class ConvCacheIterator(Iterator):
             time.sleep(0.01)
 
     def _flow_index(self, n, batch_size=32, shuffle=False, seed=None):
-        while 1:
-            num_entries_in_file = self.__get_num_entries_in_current_file()
+        self.reset()
+        self.__advance_to_next_cache_file()
+        num_entries_in_file = self.__get_num_entries_in_current_file()
+        index_array = self.__generate_index_array(shuffle=shuffle, num_entries_in_file=num_entries_in_file, seed=seed)
 
-            current_index = (self.batch_index * batch_size) % num_entries_in_file
+        while 1:
+            num_entries_in_file =  self.__get_num_entries_in_current_file()
+
+            current_index = current_index if num_entries_in_file == 0 else (self.batch_index * batch_size) % num_entries_in_file
             if num_entries_in_file > current_index + batch_size:
                 current_batch_size = batch_size
                 self.batch_index += 1
@@ -76,19 +80,27 @@ class ConvCacheIterator(Iterator):
 
                 current_batch_size = num_entries_in_file - current_index
 
-            self.n = num_entries_in_file
-
-            if seed is not None:
-                np.random.seed(seed + self.total_batches_seen)
-
-            if shuffle:
-                index_array = np.random.permutation(num_entries_in_file)
-            else:
-                index_array = np.arange(num_entries_in_file)
+            if self.batch_index == 0 or index_array is None or len(index_array) == 0:
+                index_array = self.__generate_index_array(shuffle=shuffle, num_entries_in_file=num_entries_in_file, seed=seed)
 
             self.total_batches_seen += 1
-            yield (index_array[current_index: current_index + current_batch_size],
-                   current_index, current_batch_size)
+            batch_index_array = index_array[current_index: current_index + current_batch_size]
+            batch_x = self.CURRENT_FEATURE_ARRAY[batch_index_array]
+            batch_y = self.CURRENT_LABEL_ARRAY[batch_index_array]
+
+            if len(batch_x) == 0 or len(batch_y) == 0:
+                continue
+
+            yield (batch_x, batch_y)
+
+    def __generate_index_array(self, shuffle: bool, num_entries_in_file: int, seed):
+        if seed is not None:
+            np.random.seed(seed + self.total_batches_seen)
+
+        if shuffle:
+            return np.random.permutation(num_entries_in_file)
+        else:
+            return np.arange(num_entries_in_file)
 
     #TODO:  make this smarter eventually
     def __cache_exists(self):
@@ -136,13 +148,6 @@ class ConvCacheIterator(Iterator):
             transparent_batches.mark_last_batch_skipped()
 
 
-
-
-    def __get_batch_data_from_cache(self, index_array):
-        batch_x = self.CURRENT_FEATURE_ARRAY[index_array]
-        batch_y = self.CURRENT_LABEL_ARRAY[index_array]
-        return batch_x, batch_y
-
     def __get_num_entries_in_current_file(self):
         return len(self.CURRENT_FEATURE_ARRAY)
 
@@ -151,8 +156,14 @@ class ConvCacheIterator(Iterator):
             time.sleep(0.01)
 
         array_pair = self.CACHE_FILE_QUEUE.popleft()
-        self.CURRENT_FEATURE_ARRAY = array_pair.get_feature_array()
-        self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
+
+        if(self.BATCH_ID == 'validation'):
+            self.CURRENT_FEATURE_ARRAY = array_pair.get_feature_array()
+            self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
+            x = 1;
+        else:
+            self.CURRENT_FEATURE_ARRAY = array_pair.get_feature_array()
+            self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
 
 
     def __file_queue_populator_thread(self):
