@@ -280,6 +280,8 @@ class Vgg16(IImageRecModel):
                                                            save_best_only=False,
                                                            save_weights_only=False, mode='auto', period=1)
 
+        validation_steps = int(np.ceil(val_batches.samples / self.VALIDATION_BATCH_SIZE))
+
         # OPTIMIZATION:  First, train the conv model on features, save those, then train fc layer for much faster feedback
         # Requires static images
         if self.FAST_CONV_CACHE_TRAINING:
@@ -292,11 +294,11 @@ class Vgg16(IImageRecModel):
                     batch_id = 'validation', conv_model=self.conv_model_portion, batch_size=self.VALIDATION_BATCH_SIZE, shuffle=False)
 
             self.dense_model_portion.fit_generator(conv_cache_training_batches, steps_per_epoch=steps_per_epoch, epochs=nb_epoch, initial_epoch=initial_epoch,
-                                     validation_data=conv_cache_validation_batches, validation_steps=int(np.ceil(val_batches.samples / self.VALIDATION_BATCH_SIZE)),
+                                     validation_data=conv_cache_validation_batches, validation_steps=validation_steps,
                                      callbacks=[early_stopping, model_checkpoint])
         else:
             self.model.fit_generator(batches, steps_per_epoch=steps_per_epoch, epochs=nb_epoch, initial_epoch=initial_epoch,
-                                     validation_data=val_batches, validation_steps=int(np.ceil(val_batches.samples / self.TRAINING_BATCH_SIZE)),
+                                     validation_data=val_batches, validation_steps=validation_steps,
                                      callbacks=[early_stopping, model_checkpoint])
 
 

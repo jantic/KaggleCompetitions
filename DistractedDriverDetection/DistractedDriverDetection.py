@@ -35,7 +35,7 @@ def write_predictions_to_csv(pred_summaries: [PredictionsSummary]):
             confidence = prediction.get_confidence()
             raw_confidence_array[prediction.get_class_id()] = confidence
 
-        clipped_confidence = utils.do_clip(raw_confidence_array, 0.99)
+        clipped_confidence = utils.do_clip(raw_confidence_array, 0.97)
 
         row = OrderedDict([('img', image_name), ('c0', clipped_confidence[0]), ('c1', clipped_confidence[1]), ('c2', clipped_confidence[2]),
                            ('c3', clipped_confidence[3]), ('c4', clipped_confidence[4]), ('c5', clipped_confidence[5]), ('c6', clipped_confidence[6]),
@@ -48,15 +48,17 @@ def write_predictions_to_csv(pred_summaries: [PredictionsSummary]):
     df.to_csv('submission.csv', index=False)
 
 run_main_test = True
-refine_training = True
+refine_training = False
 image_splitting = False
 visualize_performance = True
 visualization_class = 'c0'
 use_sample = False
-number_of_epochs = 50
+number_of_epochs = 100
 training_batch_size = 64
 validation_batch_size = 64
 test_batch_size = 64
+fast_conv_cache_training = True
+drop_out=0.5
 
 reload(utils)
 np.set_printoptions(precision=4, linewidth=100)
@@ -89,7 +91,8 @@ cache_directory = sample_cache_path if use_sample else main_cache_path
 steps_per_epoch = sample_steps_per_epoch if use_sample else main_steps_per_epoch
 
 vgg = Vgg16(load_weights_from_cache=True, training_images_path=training_set_path, training_batch_size=training_batch_size, validation_images_path=validation_set_path,
-            validation_batch_size=validation_batch_size, cache_directory=cache_directory, num_dense_layers_to_retrain=4, fast_conv_cache_training=True, drop_out=0.5)
+            validation_batch_size=validation_batch_size, cache_directory=cache_directory, num_dense_layers_to_retrain=4, fast_conv_cache_training=fast_conv_cache_training,
+            drop_out=drop_out)
 
 if refine_training:
     vgg.refine_training(steps_per_epoch=steps_per_epoch, number_of_epochs=number_of_epochs)

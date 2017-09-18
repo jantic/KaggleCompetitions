@@ -61,16 +61,18 @@ class ConvCacheIterator(Iterator):
         self.__advance_to_next_cache_file()
         num_entries_in_file = self.__get_num_entries_in_current_file()
         index_array = self.__generate_index_array(shuffle=shuffle, num_entries_in_file=num_entries_in_file, seed=seed)
+        num_entries_seen_total = 0;
+        current_index = 0
 
         while 1:
             num_entries_in_file =  self.__get_num_entries_in_current_file()
+            current_batch_size = min(batch_size, num_entries_in_file - current_index)
 
-            current_index = current_index if num_entries_in_file == 0 else (self.batch_index * batch_size) % num_entries_in_file
-            if num_entries_in_file > current_index + batch_size:
-                current_batch_size = batch_size
+            if current_batch_size > 0:
                 self.batch_index += 1
             else:
                 self.batch_index = 0
+                current_index = 0
                 self.__advance_to_next_cache_file()
                 num_entries_in_file = self.__get_num_entries_in_current_file()
 
@@ -78,7 +80,7 @@ class ConvCacheIterator(Iterator):
                     self.__advance_to_next_cache_file()
                     num_entries_in_file = self.__get_num_entries_in_current_file()
 
-                current_batch_size = num_entries_in_file - current_index
+                current_batch_size = min(batch_size, num_entries_in_file)
 
             if self.batch_index == 0 or index_array is None or len(index_array) == 0:
                 index_array = self.__generate_index_array(shuffle=shuffle, num_entries_in_file=num_entries_in_file, seed=seed)
@@ -87,10 +89,14 @@ class ConvCacheIterator(Iterator):
             batch_index_array = index_array[current_index: current_index + current_batch_size]
             batch_x = self.CURRENT_FEATURE_ARRAY[batch_index_array]
             batch_y = self.CURRENT_LABEL_ARRAY[batch_index_array]
+            num_entries_batch_x = len(batch_x)
+            num_entries_batch_y = len(batch_y)
 
-            if len(batch_x) == 0 or len(batch_y) == 0:
+            if num_entries_batch_x == 0 or num_entries_batch_y == 0:
                 continue
 
+            num_entries_seen_total = num_entries_seen_total + num_entries_batch_x
+            current_index = current_index + current_batch_size
             yield (batch_x, batch_y)
 
     def __generate_index_array(self, shuffle: bool, num_entries_in_file: int, seed):
