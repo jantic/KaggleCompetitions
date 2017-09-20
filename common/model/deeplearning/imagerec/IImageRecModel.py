@@ -17,7 +17,7 @@ class IImageRecModel:
     def predict(self, requests: [ImagePredictionRequest], batch_size: int, details=False) -> [ImagePredictionResult]: raise NotImplementedError
 
     @abstractmethod
-    def refine_training(self, num_epochs: int): raise NotImplementedError
+    def refine_training(self, steps_per_epoch: int, number_of_epochs: int): raise NotImplementedError
 
     @abstractmethod
     def get_classes(self)->list: raise NotImplementedError

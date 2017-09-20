@@ -61,7 +61,7 @@ class ConvCacheIterator(Iterator):
         self.__advance_to_next_cache_file()
         num_entries_in_file = self.__get_num_entries_in_current_file()
         index_array = self.__generate_index_array(shuffle=shuffle, num_entries_in_file=num_entries_in_file, seed=seed)
-        num_entries_seen_total = 0;
+        num_entries_seen_total = 0
         current_index = 0
 
         while 1:
@@ -162,14 +162,8 @@ class ConvCacheIterator(Iterator):
             time.sleep(0.01)
 
         array_pair = self.CACHE_FILE_QUEUE.popleft()
-
-        if(self.BATCH_ID == 'validation'):
-            self.CURRENT_FEATURE_ARRAY = array_pair.get_feature_array()
-            self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
-            x = 1;
-        else:
-            self.CURRENT_FEATURE_ARRAY = array_pair.get_feature_array()
-            self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
+        self.CURRENT_FEATURE_ARRAY = array_pair.get_feature_array()
+        self.CURRENT_LABEL_ARRAY = array_pair.get_label_array()
 
 
     def __file_queue_populator_thread(self):

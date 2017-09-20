@@ -6,6 +6,9 @@ from importlib import reload
 import numpy as np
 import pandas as pd
 import pathlib2
+
+from DistractedDriverDetection.DistractedDriverDataSetup import DistractedDriverDataSetup
+from DistractedDriverDetection.CsvSubmissionWriter import CsvSubmissionWritter
 from common.model.deeplearning.prediction.PredictionsSummary import PredictionsSummary
 from common.model.deeplearning.imagerec.MasterImageClassifier import MasterImageClassifier
 from common.model.deeplearning.imagerec.pretrained import vgg16
@@ -18,34 +21,6 @@ import cProfile
 
 theano_config.exception_verbosity = 'high'
 
-
-def write_predictions_to_csv(pred_summaries: [PredictionsSummary]):
-    if len(pred_summaries) == 0:
-        return
-
-    records = []
-
-    for pred_summary in pred_summaries:
-        image_name = pathlib2.PureWindowsPath(pred_summary.get_image_info().get_image_path()).name
-
-        predictions = pred_summary.get_all_predictions()
-        raw_confidence_array = np.zeros(10)
-
-        for prediction in predictions:
-            confidence = prediction.get_confidence()
-            raw_confidence_array[prediction.get_class_id()] = confidence
-
-        clipped_confidence = utils.do_clip(raw_confidence_array, 0.97)
-
-        row = OrderedDict([('img', image_name), ('c0', clipped_confidence[0]), ('c1', clipped_confidence[1]), ('c2', clipped_confidence[2]),
-                           ('c3', clipped_confidence[3]), ('c4', clipped_confidence[4]), ('c5', clipped_confidence[5]), ('c6', clipped_confidence[6]),
-                           ('c7', clipped_confidence[7]), ('c8', clipped_confidence[8]), ('c9', clipped_confidence[9])])
-
-        records.append(row)
-
-    df = pd.DataFrame.from_records(records)
-    df = df.sort_values('img')
-    df.to_csv('submission.csv', index=False)
 
 run_main_test = True
 refine_training = False
@@ -81,8 +56,10 @@ sample_test_set_path = sample_directory + "test/"
 sample_cache_path = "./cache/sample/"
 sample_steps_per_epoch = 10
 
-DataSetup.establish_working_data_directory_if_needed(source_directory=source_directory, destination_directory=main_directory,
-    destination_sample_directory=sample_directory, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.04,train_augment_factor=10)
+data_setup = DistractedDriverDataSetup()
+
+data_setup.establish_working_data_directory_if_needed(source_directory=source_directory, destination_directory=main_directory,
+            destination_sample_directory=sample_directory, valid_to_test_ratio=0.12, sample_ratio=0.04, train_augment_factor=10)
 
 training_set_path = sample_training_set_path if use_sample else main_training_set_path
 validation_set_path = sample_validation_set_path if use_sample else main_validation_set_path
@@ -101,7 +78,7 @@ image_classifier = MasterImageClassifier(vgg)
 
 if run_main_test:
     prediction_summaries = image_classifier.get_all_predictions(test_set_path, False, test_batch_size)
-    write_predictions_to_csv(prediction_summaries)
+    CsvSubmissionWritter.write_predictions_to_csv(prediction_summaries)
 
 if visualize_performance:
     test_result_summaries = []
