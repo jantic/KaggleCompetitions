@@ -46,7 +46,7 @@ sample_cache_path = "./cache/sample/"
 sample_steps_per_epoch = 10
 
 data_setup = DataSetup()
-data_setup.create_all_working_data_if_needed_default(source_directory=source_directory, destination_directory=main_directory,
+data_setup.establish_working_data_directory_if_needed(source_directory=source_directory, destination_directory=main_directory,
                                                     destination_sample_directory=sample_directory, image_file_extension='jpg', valid_to_test_ratio=0.1, sample_ratio=0.04, train_augment_factor=10)
 
 training_set_path = sample_training_set_path if use_sample else main_training_set_path

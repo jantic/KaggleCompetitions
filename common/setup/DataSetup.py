@@ -15,13 +15,13 @@ class DataSetup:
         destination_directory=DataSetup._cleanup_directory_path(destination_directory)
         DataSetup._establish_directory_if_needed(destination_directory)
 
-        if not self.__need_to_establish_working_data_directory(destination_directory):
+        if not self._need_to_establish_working_data_directory(destination_directory):
             return
 
         destination_training_data_directory = destination_directory + '/train/'
         destination_validation_data_directory = destination_directory + '/valid/'
 
-        self.__establish_training_and_test_data(source_directory=source_directory, destination_directory=destination_directory,
+        self._establish_training_and_test_data(source_directory=source_directory, destination_directory=destination_directory,
                                         image_file_extension=image_file_extension)
 
         self._establish_validation_data(training_directory=destination_training_data_directory, valid_directory=destination_validation_data_directory,

@@ -2,19 +2,12 @@
 <project version="4">
   <component name="AnalysisUIOptions">
     <option name="SPLITTER_PROPORTION" value="0.776797" />
-    <option name="SCOPE_TYPE" value="3" />
     <option name="CUSTOM_SCOPE_NAME" value="Current File" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ad16c8f4-7035-4e14-a503-806415698572" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DistractedDriverDetection/CsvSubmissionWriter.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDataSetup.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py" afterPath="$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/model/deeplearning/imagerec/IImageRecModel.py" afterPath="$PROJECT_DIR$/common/model/deeplearning/imagerec/IImageRecModel.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/model/deeplearning/imagerec/optimization/ConvCacheIterator.py" afterPath="$PROJECT_DIR$/common/model/deeplearning/imagerec/optimization/ConvCacheIterator.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/common/setup/DataSetup.py" afterPath="$PROJECT_DIR$/common/setup/DataSetup.py" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDetection.py" afterPath="$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDetectionMain.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -38,11 +31,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="DataSetup.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="DataSetup.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/setup/DataSetup.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1955">
-              <caret line="115" column="34" lean-forward="true" selection-start-line="115" selection-start-column="34" selection-end-line="115" selection-end-column="34" />
+            <state relative-caret-position="192">
+              <caret line="40" column="65" lean-forward="true" selection-start-line="40" selection-start-column="65" selection-end-line="40" selection-end-column="65" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -74,7 +67,7 @@
         <entry file="file://$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDataSetup.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="244">
-              <caret line="24" column="80" lean-forward="true" selection-start-line="24" selection-start-column="80" selection-end-line="24" selection-end-column="80" />
+              <caret line="24" column="80" lean-forward="false" selection-start-line="24" selection-start-column="80" selection-end-line="24" selection-end-column="80" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
               </folding>
@@ -106,11 +99,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="CatsVsDogs.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="CatsVsDogs.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="612">
-              <caret line="48" column="52" lean-forward="false" selection-start-line="48" selection-start-column="11" selection-end-line="48" selection-end-column="52" />
+            <state relative-caret-position="223">
+              <caret line="40" column="45" lean-forward="true" selection-start-line="40" selection-start-column="45" selection-end-line="40" selection-end-column="45" />
               <folding />
             </state>
           </provider>
@@ -215,7 +208,6 @@
         <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/optimization/TransparentDirectoryIterator.py" />
         <option value="$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDetection.py" />
         <option value="$PROJECT_DIR$/DistractedDriverDetection/ProjectSetupWizard.py" />
-        <option value="$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py" />
         <option value="$PROJECT_DIR$/DistractedDriverDetection/CsvSubmissionWriter.py" />
         <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/pretrained/vgg16.py" />
         <option value="$PROJECT_DIR$/common/model/deeplearning/imagerec/IImageRecModel.py" />
@@ -223,6 +215,7 @@
         <option value="$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDetectionMain.py" />
         <option value="$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDataSetup.py" />
         <option value="$PROJECT_DIR$/common/setup/DataSetup.py" />
+        <option value="$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py" />
       </list>
     </option>
   </component>
@@ -312,6 +305,24 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="source" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="KaggleCompetitions" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="KaggleCompetitions" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="DistractedDriverDetection" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="data" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -599,17 +610,18 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23294243" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32980973" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.27193934" sideWeight="0.21097955" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.40520042" sideWeight="0.5778252" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.31744313" sideWeight="0.76599145" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32980973" sideWeight="0.49791667" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24485373" sideWeight="0.586887" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.19176598" sideWeight="0.49573562" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.42841038" sideWeight="0.7890205" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23294243" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection Results" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.40520042" sideWeight="0.42217484" order="8" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.27193934" sideWeight="0.5586354" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.42795232" sideWeight="0.78571427" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.14179105" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
@@ -618,8 +630,6 @@
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.12260128" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection Results" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24918744" sideWeight="0.42537314" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.27193934" sideWeight="0.5586354" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
@@ -730,6 +740,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
           <caret line="2" column="24" lean-forward="false" selection-start-line="2" selection-start-column="6" selection-end-line="2" selection-end-column="24" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -758,6 +769,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="340">
           <caret line="21" column="0" lean-forward="false" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -814,6 +826,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="129">
           <caret line="30" column="55" lean-forward="false" selection-start-line="30" selection-start-column="55" selection-end-line="30" selection-end-column="55" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -856,6 +869,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="165">
           <caret line="20" column="8" lean-forward="false" selection-start-line="20" selection-start-column="8" selection-end-line="20" selection-end-column="8" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -870,6 +884,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -934,6 +949,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="239">
           <caret line="705" column="13" lean-forward="false" selection-start-line="705" selection-start-column="8" selection-end-line="705" selection-end-column="13" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -955,6 +971,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="410">
           <caret line="39" column="91" lean-forward="false" selection-start-line="39" selection-start-column="91" selection-end-line="39" selection-end-column="91" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -976,6 +993,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="153">
           <caret line="9" column="71" lean-forward="true" selection-start-line="9" selection-start-column="71" selection-end-line="9" selection-end-column="71" />
+          <folding>
+            <element signature="e#0#86#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -993,14 +1013,6 @@
           <folding>
             <element signature="e#0#38#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="612">
-          <caret line="48" column="52" lean-forward="false" selection-start-line="48" selection-start-column="11" selection-end-line="48" selection-end-column="52" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1044,13 +1056,14 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="171">
           <caret line="1769" column="4" lean-forward="false" selection-start-line="1769" selection-start-column="4" selection-end-line="1769" selection-end-column="4" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/DistractedDriverDetection/DistractedDriverDataSetup.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="244">
-          <caret line="24" column="80" lean-forward="true" selection-start-line="24" selection-start-column="80" selection-end-line="24" selection-end-column="80" />
+          <caret line="24" column="80" lean-forward="false" selection-start-line="24" selection-start-column="80" selection-end-line="24" selection-end-column="80" />
           <folding>
             <element signature="e#0#19#0" expanded="true" />
           </folding>
@@ -1059,11 +1072,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/setup/DataSetup.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1955">
-          <caret line="115" column="34" lean-forward="true" selection-start-line="115" selection-start-column="34" selection-end-line="115" selection-end-column="34" />
+        <state relative-caret-position="192">
+          <caret line="40" column="65" lean-forward="true" selection-start-line="40" selection-start-column="65" selection-end-line="40" selection-end-column="65" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CatsVsDogsRedux/CatsVsDogs.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="223">
+          <caret line="40" column="45" lean-forward="true" selection-start-line="40" selection-start-column="45" selection-end-line="40" selection-end-column="45" />
+          <folding />
         </state>
       </provider>
     </entry>
